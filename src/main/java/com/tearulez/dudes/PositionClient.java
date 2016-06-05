@@ -14,11 +14,11 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Listener.ThreadedListener;
 import com.tearulez.dudes.Network.AddCharacter;
 import com.tearulez.dudes.Network.Login;
-import com.tearulez.dudes.Network.MoveCharacter;
+import com.tearulez.dudes.Network.UpdateCharacter;
 import com.tearulez.dudes.Network.Register;
 import com.tearulez.dudes.Network.RegistrationRequired;
 import com.tearulez.dudes.Network.RemoveCharacter;
-import com.tearulez.dudes.Network.UpdateCharacter;
+import com.tearulez.dudes.Network.NewCharacterState;
 import com.esotericsoftware.minlog.Log;
 
 public class PositionClient {
@@ -53,8 +53,8 @@ public class PositionClient {
                     return;
                 }
 
-                if (object instanceof UpdateCharacter) {
-                    ui.updateCharacter((UpdateCharacter)object);
+                if (object instanceof NewCharacterState) {
+                    ui.updateCharacter((NewCharacterState)object);
                     return;
                 }
 
@@ -94,7 +94,7 @@ public class PositionClient {
                 break;
             }
 
-            MoveCharacter msg = new MoveCharacter();
+            UpdateCharacter msg = new UpdateCharacter();
             switch (ch) {
                 case 'w':
                     msg.y = -1;
@@ -144,7 +144,7 @@ public class PositionClient {
             System.out.println(character.name + " added at " + character.x + ", " + character.y);
         }
 
-        public void updateCharacter (UpdateCharacter msg) {
+        public void updateCharacter (NewCharacterState msg) {
             Character character = characters.get(msg.id);
             if (character == null) return;
             character.x = msg.x;

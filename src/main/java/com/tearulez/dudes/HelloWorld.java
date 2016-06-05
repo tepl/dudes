@@ -8,6 +8,8 @@ import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 
+import java.util.Map;
+
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -15,7 +17,7 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 public class HelloWorld {
 
-    private float x, y;
+    private GameModel model = new GameModel();
 
     // The window handle
     private long window;
@@ -24,7 +26,8 @@ public class HelloWorld {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
         try {
-            init();
+            initModel();
+            initGraphics();
             loop();
 
             // Free the window callbacks and destroy the window
@@ -37,7 +40,11 @@ public class HelloWorld {
         }
     }
 
-    private void init() {
+    private void initModel() {
+        model.init(0);
+    }
+
+    private void initGraphics() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
@@ -62,21 +69,22 @@ public class HelloWorld {
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+                if (!model.isInitialized()) return;
                 switch (key) {
                     case GLFW_KEY_ESCAPE:
                         glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
                         break;
                     case GLFW_KEY_LEFT:
-                        x -= 0.01f;
+                        model.movePlayer(-0.01f, 0);
                         break;
                     case GLFW_KEY_RIGHT:
-                        x += 0.01f;
+                        model.movePlayer(0.01f, 0);
                         break;
                     case GLFW_KEY_DOWN:
-                        y -= 0.01f;
+                        model.movePlayer(0, -0.01f);
                         break;
                     case GLFW_KEY_UP:
-                        y += 0.01f;
+                        model.movePlayer(0, 0.01f);
                         break;
                 }
             }
@@ -109,16 +117,28 @@ public class HelloWorld {
         GL.createCapabilities();
 
         // Set the clear color
-        glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            // Draw blue rectangle
-            glColor3f(0.0f, 0.0f, 1.0f);
-            glRectf(x - 0.1f, y - 0.1f, x + 0.1f, y + 0.1f);
+            if (model.isInitialized()) {
+                int playerId = model.getPlayerId();
+                for (Map.Entry<Integer, Position> positionEntry : model.getPositions().entrySet()) {
+                    Position p = positionEntry.getValue();
+                    int characterId = positionEntry.getKey();
+                    // Draw blue rectangle
+                    if (characterId == playerId) {
+                        glColor3f(0.0f, 1.0f, 0.0f);
+                    } else {
+                        glColor3f(1.0f, 0.0f, 0.0f);
+                    }
+                    float halfSize = 0.1f;
+                    glRectf(p.x - halfSize, p.y - halfSize, p.x + halfSize, p.y + halfSize);
+                }
+            }
 
             glfwSwapBuffers(window); // swap the color buffers
 
