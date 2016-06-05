@@ -15,6 +15,8 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 public class HelloWorld {
 
+    private float x, y;
+
     // The window handle
     private long window;
 
@@ -59,8 +61,25 @@ public class HelloWorld {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+                switch (key) {
+                    case GLFW_KEY_ESCAPE:
+                        glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
+                        break;
+                    case GLFW_KEY_LEFT:
+                        x -= 0.01f;
+                        break;
+                    case GLFW_KEY_RIGHT:
+                        x += 0.01f;
+                        break;
+                    case GLFW_KEY_DOWN:
+                        y -= 0.01f;
+                        break;
+                    case GLFW_KEY_UP:
+                        y += 0.01f;
+                        break;
+                }
+            }
         });
 
         // Get the resolution of the primary monitor
@@ -99,7 +118,7 @@ public class HelloWorld {
 
             // Draw blue rectangle
             glColor3f(0.0f, 0.0f, 1.0f);
-            glRectf(-0.5f, -0.5f, 0.5f, 0.5f);
+            glRectf(x - 0.1f, y - 0.1f, x + 0.1f, y + 0.1f);
 
             glfwSwapBuffers(window); // swap the color buffers
 
