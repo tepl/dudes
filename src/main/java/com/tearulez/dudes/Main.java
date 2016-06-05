@@ -1,9 +1,5 @@
 package com.tearulez.dudes;
 
-/**
- * Created by Teplovoz on 6/5/2016.
- */
-
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -15,9 +11,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-public class HelloWorld {
+public class Main {
 
-    private GameModel model = new GameModel();
+    private GameClient client = new GameClient();
 
     // The window handle
     private long window;
@@ -26,7 +22,7 @@ public class HelloWorld {
         System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
         try {
-            initModel();
+            client.init();
             initGraphics();
             loop();
 
@@ -38,10 +34,6 @@ public class HelloWorld {
             glfwTerminate();
             glfwSetErrorCallback(null).free();
         }
-    }
-
-    private void initModel() {
-        model.init(0);
     }
 
     private void initGraphics() {
@@ -69,22 +61,22 @@ public class HelloWorld {
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-                if (!model.isInitialized()) return;
+                if (!client.isInitialized()) return;
                 switch (key) {
                     case GLFW_KEY_ESCAPE:
                         glfwSetWindowShouldClose(window, true); // We will detect this in our rendering loop
                         break;
                     case GLFW_KEY_LEFT:
-                        model.movePlayer(-0.01f, 0);
+                        client.movePlayer(-0.01f, 0);
                         break;
                     case GLFW_KEY_RIGHT:
-                        model.movePlayer(0.01f, 0);
+                        client.movePlayer(0.01f, 0);
                         break;
                     case GLFW_KEY_DOWN:
-                        model.movePlayer(0, -0.01f);
+                        client.movePlayer(0, -0.01f);
                         break;
                     case GLFW_KEY_UP:
-                        model.movePlayer(0, 0.01f);
+                        client.movePlayer(0, 0.01f);
                         break;
                 }
             }
@@ -124,9 +116,9 @@ public class HelloWorld {
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            if (model.isInitialized()) {
-                int playerId = model.getPlayerId();
-                for (Map.Entry<Integer, Position> positionEntry : model.getPositions().entrySet()) {
+            if (client.isInitialized()) {
+                int playerId = client.getPlayerId();
+                for (Map.Entry<Integer, Position> positionEntry : client.getPositions().entrySet()) {
                     Position p = positionEntry.getValue();
                     int characterId = positionEntry.getKey();
                     // Draw blue rectangle
@@ -149,7 +141,7 @@ public class HelloWorld {
     }
 
     public static void main(String[] args) {
-        new HelloWorld().run();
+        new Main().run();
     }
 
 }

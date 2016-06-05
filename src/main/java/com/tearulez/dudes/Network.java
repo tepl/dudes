@@ -3,10 +3,8 @@ package com.tearulez.dudes;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
-/**
- * Created by Teplovoz on 6/4/2016.
- */
-// This class is a convenient place to keep things common to both the client and server.
+import java.util.Map;
+
 public class Network {
     static public final int port = 54555;
 
@@ -14,40 +12,23 @@ public class Network {
     static public void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
         kryo.register(Login.class);
-        kryo.register(RegistrationRequired.class);
-        kryo.register(Register.class);
-        kryo.register(AddCharacter.class);
-        kryo.register(NewCharacterState.class);
-        kryo.register(RemoveCharacter.class);
-        kryo.register(Character.class);
-        kryo.register(UpdateCharacter.class);
+        kryo.register(Registered.class);
+        kryo.register(UpdateModel.class);
+        kryo.register(MovePlayer.class);
     }
 
     static public class Login {
-        public String name;
     }
 
-    static public class RegistrationRequired {
-    }
-
-    static public class Register {
-        public String name;
-        public String otherStuff;
-    }
-
-    static public class NewCharacterState {
-        public int id, x, y;
-    }
-
-    static public class AddCharacter {
-        public Character character;
-    }
-
-    static public class RemoveCharacter {
+    static public class Registered {
         public int id;
     }
 
-    static public class UpdateCharacter {
-        public int x, y;
+    static public class UpdateModel {
+        public Map<Integer, Position> positions;
+    }
+
+    static public class MovePlayer {
+        public float dx, dy;
     }
 }
