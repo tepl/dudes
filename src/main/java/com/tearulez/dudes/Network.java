@@ -17,10 +17,10 @@ public class Network {
         kryo.register(RegistrationRequired.class);
         kryo.register(Register.class);
         kryo.register(AddCharacter.class);
-        kryo.register(UpdateCharacter.class);
+        kryo.register(NewCharacterState.class);
         kryo.register(RemoveCharacter.class);
         kryo.register(Character.class);
-        kryo.register(MoveCharacter.class);
+        kryo.register(UpdateCharacter.class);
     }
 
     static public class Login {
@@ -35,7 +35,7 @@ public class Network {
         public String otherStuff;
     }
 
-    static public class UpdateCharacter {
+    static public class NewCharacterState {
         public int id, x, y;
     }
 
@@ -47,7 +47,7 @@ public class Network {
         public int id;
     }
 
-    static public class MoveCharacter {
+    static public class UpdateCharacter {
         public int x, y;
     }
 }

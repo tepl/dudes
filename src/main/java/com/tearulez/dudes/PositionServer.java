@@ -17,11 +17,11 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.tearulez.dudes.Network.AddCharacter;
 import com.tearulez.dudes.Network.Login;
-import com.tearulez.dudes.Network.MoveCharacter;
+import com.tearulez.dudes.Network.UpdateCharacter;
 import com.tearulez.dudes.Network.Register;
 import com.tearulez.dudes.Network.RegistrationRequired;
 import com.tearulez.dudes.Network.RemoveCharacter;
-import com.tearulez.dudes.Network.UpdateCharacter;
+import com.tearulez.dudes.Network.NewCharacterState;
 import com.esotericsoftware.minlog.Log;
 
 public class PositionServer {
@@ -114,23 +114,20 @@ public class PositionServer {
                     return;
                 }
 
-                if (object instanceof MoveCharacter) {
+                if (object instanceof UpdateCharacter) {
                     // Ignore if not logged in.
                     if (character == null) return;
 
-                    MoveCharacter msg = (MoveCharacter) object;
+                    UpdateCharacter msg = (UpdateCharacter) object;
 
-                    // Ignore if invalid move.
-                    if (Math.abs(msg.x) != 1 && Math.abs(msg.y) != 1) return;
-
-                    character.x += msg.x;
-                    character.y += msg.y;
+                    character.x = msg.x;
+                    character.y = msg.y;
                     if (!saveCharacter(character)) {
                         connection.close();
                         return;
                     }
 
-                    UpdateCharacter update = new UpdateCharacter();
+                    NewCharacterState update = new NewCharacterState();
                     update.id = character.id;
                     update.x = character.x;
                     update.y = character.y;
