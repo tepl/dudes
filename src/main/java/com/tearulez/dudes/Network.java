@@ -3,6 +3,7 @@ package com.tearulez.dudes;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class Network {
@@ -15,6 +16,8 @@ public class Network {
         kryo.register(Registered.class);
         kryo.register(UpdateModel.class);
         kryo.register(MovePlayer.class);
+        kryo.register(HashMap.class);
+        kryo.register(Position.class);
     }
 
     static public class Login {

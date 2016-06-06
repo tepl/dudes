@@ -4,6 +4,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +47,12 @@ public class GameClient {
                 System.exit(0);
             }
         }));
+        try {
+            client.connect(5000, "localhost", Network.port);
+            // Server communication after connection can go here, or in Listener#connected().
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public void movePlayer(float dx, float dy) {
@@ -65,5 +72,9 @@ public class GameClient {
 
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public void closeServerConnection() {
+        client.close();
     }
 }

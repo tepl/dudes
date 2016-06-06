@@ -141,7 +141,9 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        new Main().run();
+        Main main = new Main();
+        main.run();
+        main.client.closeServerConnection();
     }
 
 }
