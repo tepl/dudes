@@ -40,7 +40,7 @@ public class GameAdapter extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) dy += 1;
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) dy -= 1;
         if (dx != 0 || dy != 0) {
-            gameClient.movePlayer(dx * 0.01f, dy * 0.01f);
+            gameClient.movePlayer(dx, dy);
         }
 
 
@@ -56,7 +56,12 @@ public class GameAdapter extends ApplicationAdapter {
                 } else {
                     shapeRenderer.setColor(Color.RED);
                 }
-                shapeRenderer.circle(width / 2 + p.x * 100, height / 2 + p.y * 100, 10);
+                int scaleFactor = 10;
+                shapeRenderer.circle(
+                        width / 2 + p.x * scaleFactor,
+                        height / 2 + p.y * scaleFactor,
+                        GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
+                );
             }
             shapeRenderer.end();
         }
