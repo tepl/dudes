@@ -51,12 +51,17 @@ public class GameServer {
     public void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         Runnable runnable = () -> {
-            gameModel.applyActions();
+            gameModel.nextStep();
             Network.UpdateModel updateModel = new Network.UpdateModel();
             updateModel.positions = gameModel.getPositions();
             server.sendToAllTCP(updateModel);
         };
-        scheduler.scheduleAtFixedRate(runnable, 0, 100, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(
+                runnable,
+                0,
+                (int) (GameModel.TIME_STEP * 1000),
+                TimeUnit.MILLISECONDS
+        );
     }
 
     public void startServing() throws IOException {
