@@ -12,7 +12,7 @@ public class GameClient {
     private Client client;
     private Map<Integer, Position> positions = new HashMap<>();
     private int playerId;
-    private boolean initialized = false;
+    private volatile boolean initialized = false;
 
     public void init() {
         client = new Client();
