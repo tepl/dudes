@@ -3,8 +3,8 @@ package com.tearulez.dudes;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class Network {
     static public final int port = 54555;
@@ -17,7 +17,10 @@ public class Network {
         kryo.register(UpdateModel.class);
         kryo.register(MovePlayer.class);
         kryo.register(HashMap.class);
-        kryo.register(Position.class);
+        kryo.register(ArrayList.class);
+        kryo.register(Point.class);
+        kryo.register(Wall.class);
+        kryo.register(GameState.class);
     }
 
     static public class Login {
@@ -28,7 +31,7 @@ public class Network {
     }
 
     static public class UpdateModel {
-        public Map<Integer, Position> positions;
+        public GameState state;
     }
 
     static public class MovePlayer {

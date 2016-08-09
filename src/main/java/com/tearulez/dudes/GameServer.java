@@ -6,6 +6,7 @@ import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -51,10 +52,14 @@ public class GameServer {
     public void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         Runnable runnable = () -> {
-            gameModel.nextStep();
-            Network.UpdateModel updateModel = new Network.UpdateModel();
-            updateModel.positions = gameModel.getPositions();
-            server.sendToAllTCP(updateModel);
+            try {
+                gameModel.nextStep();
+                Network.UpdateModel updateModel = new Network.UpdateModel();
+                updateModel.state = gameModel.getState();
+                server.sendToAllTCP(updateModel);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         };
         scheduler.scheduleAtFixedRate(
                 runnable,
@@ -70,7 +75,13 @@ public class GameServer {
     }
 
     public static GameServer createServer() throws IOException {
-        GameModel gameModel = new GameModel();
+        ArrayList<Wall> walls = new ArrayList<>();
+        ArrayList<Point> points = new ArrayList<>();
+        points.add(Point.create(10, -10));
+        points.add(Point.create(20, 0));
+        points.add(Point.create(20, -10));
+        walls.add(Wall.create(points));
+        GameModel gameModel = new GameModel(walls);
         Server server = new Server() {
             protected Connection newConnection() {
                 // By providing our own connection implementation, we can store per

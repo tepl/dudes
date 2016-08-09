@@ -3,6 +3,7 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,9 +16,14 @@ public class GameModel {
     private static final int POSITION_ITERATIONS = 3;
 
     private HashMap<Integer, Body> bodies = new HashMap<>();
+    private ArrayList<Wall> walls = new ArrayList<>();
     private Map<Integer, Network.MovePlayer> actions = new HashMap<>();
     private World world = new World(new Vector2(0, 0), true);
     private int nextPlayerId;
+
+    public GameModel(ArrayList<Wall> walls) {
+        this.walls = walls;
+    }
 
     public synchronized void bufferAction(int playerId, Network.MovePlayer move) {
         actions.put(playerId, move);
@@ -60,14 +66,16 @@ public class GameModel {
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
     }
 
-    public synchronized Map<Integer, Position> getPositions() {
-        Map<Integer, Position> positions = new HashMap<>();
+    public synchronized GameState getState() {
+        return GameState.create(getPositions(), walls);
+    }
+
+    private Map<Integer, Point> getPositions() {
+        Map<Integer, Point> positions = new HashMap<>();
         for (Map.Entry<Integer, Body> entry : bodies.entrySet()) {
             int playerId = entry.getKey();
             Vector2 center = entry.getValue().getPosition();
-            Position p = new Position();
-            p.x = center.x;
-            p.y = center.y;
+            Point p = Point.create(center.x, center.y);
             positions.put(playerId, p);
         }
         return positions;

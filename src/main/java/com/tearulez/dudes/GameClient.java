@@ -5,12 +5,11 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 
 public class GameClient {
     private Client client;
-    private Map<Integer, Position> positions = new HashMap<>();
+    private GameState state = GameState.create(Collections.emptyMap(), Collections.emptyList());
     private int playerId;
     private volatile boolean initialized = false;
 
@@ -39,7 +38,7 @@ public class GameClient {
                 // Update received
                 if (object instanceof Network.UpdateModel) {
                     Network.UpdateModel updateModel = (Network.UpdateModel) object;
-                    positions = updateModel.positions;
+                    state = updateModel.state;
                 }
             }
 
@@ -62,8 +61,8 @@ public class GameClient {
         client.sendTCP(movePlayer);
     }
 
-    public Map<Integer, Position> getPositions() {
-        return positions;
+    public GameState getState() {
+        return state;
     }
 
     public int getPlayerId() {
@@ -77,4 +76,5 @@ public class GameClient {
     public void closeServerConnection() {
         client.close();
     }
+
 }

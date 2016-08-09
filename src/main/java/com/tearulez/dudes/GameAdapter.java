@@ -20,6 +20,7 @@ public class GameAdapter extends ApplicationAdapter {
         shapeRenderer = new ShapeRenderer();
         gameClient = new GameClient();
         gameClient.init();
+        System.out.println("Game Client is initialized");
     }
 
     @Override
@@ -43,20 +44,37 @@ public class GameAdapter extends ApplicationAdapter {
             gameClient.movePlayer(dx, dy);
         }
 
-
         if (gameClient.isInitialized()) {
-            int playerId = gameClient.getPlayerId();
+            int scaleFactor = 10;
+
+            GameState state = gameClient.getState();
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            shapeRenderer.setColor(Color.BLUE);
+            for (Wall wall : state.getWalls()) {
+                int size = wall.getPoints().size();
+                float[] vertices = new float[size * 2];
+                for (int i = 0; i < size; i++) {
+                    Point point = wall.getPoints().get(i);
+                    vertices[i * 2] = width / 2 + point.x * scaleFactor;
+                    vertices[i * 2 + 1] = height / 2 + point.y * scaleFactor;
+                }
+                shapeRenderer.polygon(vertices);
+            }
+            shapeRenderer.end();
+
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            for (Map.Entry<Integer, Position> positionEntry : gameClient.getPositions().entrySet()) {
-                Position p = positionEntry.getValue();
+            int playerId = gameClient.getPlayerId();
+            for (Map.Entry<Integer, Point> positionEntry : state.getPositions().entrySet()) {
+                Point p = positionEntry.getValue();
                 int characterId = positionEntry.getKey();
+
 
                 if (characterId == playerId) {
                     shapeRenderer.setColor(Color.GREEN);
                 } else {
                     shapeRenderer.setColor(Color.RED);
                 }
-                int scaleFactor = 10;
                 shapeRenderer.circle(
                         width / 2 + p.x * scaleFactor,
                         height / 2 + p.y * scaleFactor,
@@ -64,6 +82,7 @@ public class GameAdapter extends ApplicationAdapter {
                 );
             }
             shapeRenderer.end();
+
         }
 
     }
