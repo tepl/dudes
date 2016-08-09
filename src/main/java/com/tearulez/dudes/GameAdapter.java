@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.Map;
 
-public class GameAdapter extends ApplicationAdapter {
+class GameAdapter extends ApplicationAdapter {
     private ShapeRenderer shapeRenderer;
     private GameClient gameClient;
     private int width = 0;

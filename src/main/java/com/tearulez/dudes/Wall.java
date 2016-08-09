@@ -2,19 +2,19 @@ package com.tearulez.dudes;
 
 import java.util.List;
 
-public class Wall {
+class Wall {
     private List<Point> points;
 
-    public Wall() {
+    private Wall() {
     }
 
-    public static Wall create(List<Point> points) {
+    static Wall create(List<Point> points) {
         Wall wall = new Wall();
         wall.points = points;
         return wall;
     }
 
-    public List<Point> getPoints() {
+    List<Point> getPoints() {
         return points;
     }
 }

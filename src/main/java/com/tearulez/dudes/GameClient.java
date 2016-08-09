@@ -7,13 +7,13 @@ import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
 import java.util.Collections;
 
-public class GameClient {
+class GameClient {
     private Client client;
     private GameState state = GameState.create(Collections.emptyMap(), Collections.emptyList());
     private int playerId;
     private volatile boolean initialized = false;
 
-    public void init() {
+    void init() {
         client = new Client();
         client.start();
 
@@ -54,26 +54,26 @@ public class GameClient {
         }
     }
 
-    public void movePlayer(float dx, float dy) {
+    void movePlayer(float dx, float dy) {
         Network.MovePlayer movePlayer = new Network.MovePlayer();
         movePlayer.dx = dx;
         movePlayer.dy = dy;
         client.sendTCP(movePlayer);
     }
 
-    public GameState getState() {
+    GameState getState() {
         return state;
     }
 
-    public int getPlayerId() {
+    int getPlayerId() {
         return playerId;
     }
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
         return initialized;
     }
 
-    public void closeServerConnection() {
+    void closeServerConnection() {
         client.close();
     }
 

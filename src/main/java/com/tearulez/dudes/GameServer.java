@@ -11,17 +11,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class GameServer {
+class GameServer {
 
     private final GameModel gameModel;
     private final Server server;
 
-    public GameServer(GameModel gameModel, Server server) {
+    private GameServer(GameModel gameModel, Server server) {
         this.gameModel = gameModel;
         this.server = server;
     }
 
-    public void initListener() {
+    private void initListener() {
         // For consistency, the classes to be sent over the network are
         // registered by the same method for both the client and server.
         Network.register(server);
@@ -49,7 +49,7 @@ public class GameServer {
         });
     }
 
-    public void startGameLoop() {
+    private void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         Runnable runnable = () -> {
             try {
@@ -69,12 +69,12 @@ public class GameServer {
         );
     }
 
-    public void startServing() throws IOException {
+    private void startServing() throws IOException {
         server.bind(Network.port);
         server.start();
     }
 
-    public static GameServer createServer() throws IOException {
+    private static GameServer createServer() throws IOException {
         ArrayList<Wall> walls = new ArrayList<>();
         ArrayList<Point> points = new ArrayList<>();
         points.add(Point.create(10, -10));
@@ -93,8 +93,8 @@ public class GameServer {
     }
 
     // This holds per connection state.
-    static class PlayerConnection extends Connection {
-        public int playerId;
+    private static class PlayerConnection extends Connection {
+        int playerId;
     }
 
     public static void main(String[] args) throws IOException {

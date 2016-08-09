@@ -6,11 +6,11 @@ import com.esotericsoftware.kryonet.EndPoint;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Network {
-    static public final int port = 54555;
+class Network {
+    static final int port = 54555;
 
     // This registers objects that are going to be sent over the network.
-    static public void register(EndPoint endPoint) {
+    static void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
         kryo.register(Login.class);
         kryo.register(Registered.class);
@@ -23,18 +23,18 @@ public class Network {
         kryo.register(GameState.class);
     }
 
-    static public class Login {
+    static class Login {
     }
 
-    static public class Registered {
-        public int id;
+    static class Registered {
+        int id;
     }
 
-    static public class UpdateModel {
-        public GameState state;
+    static class UpdateModel {
+        GameState state;
     }
 
-    static public class MovePlayer {
-        public float dx, dy;
+    static class MovePlayer {
+        float dx, dy;
     }
 }

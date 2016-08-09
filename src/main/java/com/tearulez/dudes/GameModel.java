@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GameModel {
+class GameModel {
 
-    public static final float TIME_STEP = 1.0f / 60;
-    public static final float PLAYER_CIRCLE_SIZE = 1;
+    static final float TIME_STEP = 1.0f / 60;
+    static final float PLAYER_CIRCLE_SIZE = 1;
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
@@ -21,15 +21,15 @@ public class GameModel {
     private World world = new World(new Vector2(0, 0), true);
     private int nextPlayerId;
 
-    public GameModel(ArrayList<Wall> walls) {
+    GameModel(ArrayList<Wall> walls) {
         this.walls = walls;
     }
 
-    public synchronized void bufferAction(int playerId, Network.MovePlayer move) {
+    synchronized void bufferAction(int playerId, Network.MovePlayer move) {
         actions.put(playerId, move);
     }
 
-    public synchronized int registerNewPlayer() {
+    synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
         BodyDef bodyDef = new BodyDef();
@@ -49,13 +49,13 @@ public class GameModel {
         return playerId;
     }
 
-    public synchronized void removePlayer(int playerId) {
+    synchronized void removePlayer(int playerId) {
         Body body = bodies.get(playerId);
         world.destroyBody(body);
         bodies.remove(playerId);
     }
 
-    public synchronized void nextStep() {
+    synchronized void nextStep() {
         for (Map.Entry<Integer, Network.MovePlayer> action : actions.entrySet()) {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
@@ -66,7 +66,7 @@ public class GameModel {
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
     }
 
-    public synchronized GameState getState() {
+    synchronized GameState getState() {
         return GameState.create(getPositions(), walls);
     }
 
