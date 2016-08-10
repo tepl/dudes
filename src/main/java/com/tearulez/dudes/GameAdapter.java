@@ -3,6 +3,7 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -14,6 +15,8 @@ class GameAdapter extends ApplicationAdapter {
     private final GameClient gameClient;
     private int width = 0;
     private int height = 0;
+    private int mouseX;
+    private int mouseY;
 
     GameAdapter(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -22,6 +25,14 @@ class GameAdapter extends ApplicationAdapter {
     @Override
     public void create() {
         shapeRenderer = new ShapeRenderer();
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean mouseMoved(int screenX, int screenY) {
+                mouseX = screenX;
+                mouseY = screenY;
+                return true;
+            }
+        });
         System.out.println("Game Client is initialized");
     }
 
@@ -86,7 +97,17 @@ class GameAdapter extends ApplicationAdapter {
             }
             shapeRenderer.end();
 
+            renderCrosshairs();
         }
 
+    }
+
+    private void renderCrosshairs() {
+        int crosshairsSize = 4;
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.line(mouseX - crosshairsSize, height - mouseY, mouseX + crosshairsSize, height - mouseY);
+        shapeRenderer.line(mouseX, height - mouseY - crosshairsSize, mouseX, height - mouseY + crosshairsSize);
+        shapeRenderer.end();
     }
 }
