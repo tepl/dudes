@@ -7,19 +7,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class GameModel {
 
     static final float TIME_STEP = 1.0f / 60;
     static final float PLAYER_CIRCLE_SIZE = 1;
+    static final float BULLER_CIRCLE_SIZE = 0.2f;
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
 
-    private HashMap<Integer, Body> bodies = new HashMap<>();
-    private ArrayList<Wall> walls = new ArrayList<>();
-    private Map<Integer, Network.MovePlayer> actions = new HashMap<>();
+    private Map<Integer, Body> playerBodies = new HashMap<>();
+    private List<Body> bulletBodies = new ArrayList<>();
     private static World world = new World(new Vector2(0, 0), true);
+    private ArrayList<Wall> walls = new ArrayList<>();
+    private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
+    private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
     private int nextPlayerId;
 
     private GameModel() {
@@ -56,59 +61,93 @@ class GameModel {
         return gameModel;
     }
 
-    synchronized void bufferAction(int playerId, Network.MovePlayer move) {
-        actions.put(playerId, move);
+    synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
+        moveActions.put(playerId, action);
+    }
+
+    synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
+        shootActions.put(playerId, action);
     }
 
     synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
+        Body body = createCircleBody(PLAYER_CIRCLE_SIZE, new Vector2());
+        playerBodies.put(playerId, body);
+        return playerId;
+    }
+
+    private Body createCircleBody(float circleSize, Vector2 position) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(0, 0);
+        bodyDef.position.set(position);
         Body body = world.createBody(bodyDef);
         CircleShape shape = new CircleShape();
-        shape.setRadius(PLAYER_CIRCLE_SIZE);
+        shape.setRadius(circleSize);
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
         body.createFixture(fixtureDef);
 
         shape.dispose();
-
-        bodies.put(playerId, body);
-        return playerId;
+        return body;
     }
 
     synchronized void removePlayer(int playerId) {
-        Body body = bodies.get(playerId);
+        Body body = playerBodies.get(playerId);
         world.destroyBody(body);
-        bodies.remove(playerId);
+        playerBodies.remove(playerId);
     }
 
     synchronized void nextStep() {
-        for (Map.Entry<Integer, Network.MovePlayer> action : actions.entrySet()) {
+        for (Map.Entry<Integer, Network.MovePlayer> action : moveActions.entrySet()) {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
-            Body body = bodies.get(playerId);
+            Body body = playerBodies.get(playerId);
             body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
         }
-        actions.clear();
+        moveActions.clear();
+
+        for (Map.Entry<Integer, Network.ShootAt> action : shootActions.entrySet()) {
+            int playerId = action.getKey();
+            Network.ShootAt shootAt = action.getValue();
+            Vector2 target = new Vector2(shootAt.x, shootAt.y);
+            Vector2 playerPosition = playerBodies.get(playerId).getPosition();
+            Vector2 aim = target.cpy().sub(playerPosition).nor();
+            // the offset is needed to eliminate bullet-shooter collision
+            Vector2 offset = aim.scl(PLAYER_CIRCLE_SIZE + BULLER_CIRCLE_SIZE);
+            Body bullet = createCircleBody(BULLER_CIRCLE_SIZE, playerPosition.cpy().add(offset));
+            Vector2 bulletVelocity = aim.cpy().scl(15);
+            bullet.setLinearVelocity(bulletVelocity);
+            bulletBodies.add(bullet);
+        }
+        shootActions.clear();
+
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
     }
 
     synchronized GameState getState() {
-        return GameState.create(getPositions(), walls);
+        return GameState.create(getPlayerPositions(), walls, getBulletPositions());
     }
 
-    private Map<Integer, Point> getPositions() {
+    private Map<Integer, Point> getPlayerPositions() {
         Map<Integer, Point> positions = new HashMap<>();
-        for (Map.Entry<Integer, Body> entry : bodies.entrySet()) {
+        for (Map.Entry<Integer, Body> entry : playerBodies.entrySet()) {
             int playerId = entry.getKey();
             Vector2 center = entry.getValue().getPosition();
             Point p = Point.create(center.x, center.y);
             positions.put(playerId, p);
         }
         return positions;
+    }
+
+    private List<Point> getBulletPositions() {
+        Stream<Point> bullets = bulletBodies.stream().map(
+                (bullet) -> {
+                    Vector2 center = bullet.getPosition();
+                    return Point.create(center.x, center.y);
+                }
+        );
+        return bullets.collect(Collectors.toList());
     }
 }

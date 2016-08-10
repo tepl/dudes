@@ -18,9 +18,11 @@ class GameAdapter extends ApplicationAdapter {
     private int height = 0;
     private int mouseX;
     private int mouseY;
+    private final int scaleFactor;
 
     GameAdapter(GameClient gameClient) {
         this.gameClient = gameClient;
+        scaleFactor = 10;
     }
 
     @Override
@@ -31,6 +33,14 @@ class GameAdapter extends ApplicationAdapter {
             public boolean mouseMoved(int screenX, int screenY) {
                 mouseX = screenX;
                 mouseY = screenY;
+                return true;
+            }
+
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                float x = (screenX - width / 2) / scaleFactor;
+                float y = -(screenY - height / 2) / scaleFactor;
+                gameClient.shootAt(x, y);
                 return true;
             }
         });
@@ -59,20 +69,31 @@ class GameAdapter extends ApplicationAdapter {
         }
 
         if (gameClient.isInitialized()) {
-            int scaleFactor = 10;
 
             GameState state = gameClient.getState();
-            List<Wall> walls = state.getWalls();
-            Map<Integer, Point> playerPositions = state.getPositions();
 
-            renderWalls(scaleFactor, walls);
-            renderPlayers(scaleFactor, playerPositions);
+            renderWalls(state.getWalls());
+            renderPlayers(state.getPositions());
+            renderBullets(state.getBullets());
             renderCrosshairs();
         }
 
     }
 
-    private void renderPlayers(int scaleFactor, Map<Integer, Point> playerPositions) {
+    private void renderBullets(List<Point> bullets) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (Point bullet : bullets) {
+            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.circle(
+                    width / 2 + bullet.x * scaleFactor,
+                    height / 2 + bullet.y * scaleFactor,
+                    GameModel.BULLER_CIRCLE_SIZE * scaleFactor
+            );
+        }
+        shapeRenderer.end();
+    }
+
+    private void renderPlayers(Map<Integer, Point> playerPositions) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         int playerId = gameClient.getPlayerId();
         for (Map.Entry<Integer, Point> positionEntry : playerPositions.entrySet()) {
@@ -93,7 +114,7 @@ class GameAdapter extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
-    private void renderWalls(int scaleFactor, List<Wall> walls) {
+    private void renderWalls(List<Wall> walls) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.BLUE);
         for (Wall wall : walls) {
