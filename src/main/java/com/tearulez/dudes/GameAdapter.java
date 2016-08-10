@@ -3,10 +3,12 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
+import java.util.List;
 import java.util.Map;
 
 class GameAdapter extends ApplicationAdapter {
@@ -14,14 +16,34 @@ class GameAdapter extends ApplicationAdapter {
     private final GameClient gameClient;
     private int width = 0;
     private int height = 0;
+    private int mouseX;
+    private int mouseY;
+    private final int scaleFactor;
 
     GameAdapter(GameClient gameClient) {
         this.gameClient = gameClient;
+        scaleFactor = 10;
     }
 
     @Override
     public void create() {
         shapeRenderer = new ShapeRenderer();
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean mouseMoved(int screenX, int screenY) {
+                mouseX = screenX;
+                mouseY = screenY;
+                return true;
+            }
+
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                float x = (screenX - width / 2) / scaleFactor;
+                float y = -(screenY - height / 2) / scaleFactor;
+                gameClient.shootAt(x, y);
+                return true;
+            }
+        });
         System.out.println("Game Client is initialized");
     }
 
@@ -47,46 +69,74 @@ class GameAdapter extends ApplicationAdapter {
         }
 
         if (gameClient.isInitialized()) {
-            int scaleFactor = 10;
 
             GameState state = gameClient.getState();
 
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            shapeRenderer.setColor(Color.BLUE);
-            for (Wall wall : state.getWalls()) {
-                int size = wall.getPoints().size();
-                Point position = wall.getPosition();
-                float[] vertices = new float[size * 2];
-                for (int i = 0; i < size; i++) {
-                    Point point = wall.getPoints().get(i);
-                    vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
-                    vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
-                }
-                shapeRenderer.polygon(vertices);
-            }
-            shapeRenderer.end();
-
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            int playerId = gameClient.getPlayerId();
-            for (Map.Entry<Integer, Point> positionEntry : state.getPositions().entrySet()) {
-                Point p = positionEntry.getValue();
-                int characterId = positionEntry.getKey();
-
-
-                if (characterId == playerId) {
-                    shapeRenderer.setColor(Color.GREEN);
-                } else {
-                    shapeRenderer.setColor(Color.RED);
-                }
-                shapeRenderer.circle(
-                        width / 2 + p.x * scaleFactor,
-                        height / 2 + p.y * scaleFactor,
-                        GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
-                );
-            }
-            shapeRenderer.end();
-
+            renderWalls(state.getWalls());
+            renderPlayers(state.getPositions());
+            renderBullets(state.getBullets());
+            renderCrosshairs();
         }
 
+    }
+
+    private void renderBullets(List<Point> bullets) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (Point bullet : bullets) {
+            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.circle(
+                    width / 2 + bullet.x * scaleFactor,
+                    height / 2 + bullet.y * scaleFactor,
+                    GameModel.BULLER_CIRCLE_SIZE * scaleFactor
+            );
+        }
+        shapeRenderer.end();
+    }
+
+    private void renderPlayers(Map<Integer, Point> playerPositions) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        int playerId = gameClient.getPlayerId();
+        for (Map.Entry<Integer, Point> positionEntry : playerPositions.entrySet()) {
+            Point p = positionEntry.getValue();
+            int characterId = positionEntry.getKey();
+
+            if (characterId == playerId) {
+                shapeRenderer.setColor(Color.GREEN);
+            } else {
+                shapeRenderer.setColor(Color.RED);
+            }
+            shapeRenderer.circle(
+                    width / 2 + p.x * scaleFactor,
+                    height / 2 + p.y * scaleFactor,
+                    GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
+            );
+        }
+        shapeRenderer.end();
+    }
+
+    private void renderWalls(List<Wall> walls) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.BLUE);
+        for (Wall wall : walls) {
+            int size = wall.getPoints().size();
+            Point position = wall.getPosition();
+            float[] vertices = new float[size * 2];
+            for (int i = 0; i < size; i++) {
+                Point point = wall.getPoints().get(i);
+                vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
+                vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
+            }
+            shapeRenderer.polygon(vertices);
+        }
+        shapeRenderer.end();
+    }
+
+    private void renderCrosshairs() {
+        int crosshairsSize = 4;
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.line(mouseX - crosshairsSize, height - mouseY, mouseX + crosshairsSize, height - mouseY);
+        shapeRenderer.line(mouseX, height - mouseY - crosshairsSize, mouseX, height - mouseY + crosshairsSize);
+        shapeRenderer.end();
     }
 }

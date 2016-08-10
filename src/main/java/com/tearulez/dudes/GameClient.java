@@ -9,7 +9,11 @@ import java.util.Collections;
 
 class GameClient {
     private Client client;
-    private GameState state = GameState.create(Collections.emptyMap(), Collections.emptyList());
+    private GameState state = GameState.create(
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            Collections.emptyList()
+    );
     private int playerId;
     private volatile boolean initialized = false;
 
@@ -59,6 +63,13 @@ class GameClient {
         movePlayer.dx = dx;
         movePlayer.dy = dy;
         client.sendTCP(movePlayer);
+    }
+
+    void shootAt(float x, float y) {
+        Network.ShootAt shootAt = new Network.ShootAt();
+        shootAt.x = x;
+        shootAt.y = y;
+        client.sendTCP(shootAt);
     }
 
     GameState getState() {

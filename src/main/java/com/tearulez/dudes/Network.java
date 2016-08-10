@@ -19,6 +19,7 @@ class Network {
         kryo.register(Point.class);
         kryo.register(Wall.class);
         kryo.register(GameState.class);
+        kryo.register(ShootAt.class);
     }
 
     static class Login {
@@ -34,5 +35,9 @@ class Network {
 
     static class MovePlayer {
         float dx, dy;
+    }
+
+    static class ShootAt {
+        float x, y;
     }
 }

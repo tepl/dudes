@@ -38,8 +38,13 @@ class GameServer {
                 }
 
                 if (object instanceof Network.MovePlayer) {
-                    Network.MovePlayer movePlayer = (Network.MovePlayer) object;
-                    gameModel.bufferAction(connection.playerId, movePlayer);
+                    Network.MovePlayer action = (Network.MovePlayer) object;
+                    gameModel.bufferMoveAction(connection.playerId, action);
+                }
+
+                if (object instanceof Network.ShootAt){
+                    Network.ShootAt action = (Network.ShootAt) object;
+                    gameModel.bufferShootAction(connection.playerId, action);
                 }
             }
 
