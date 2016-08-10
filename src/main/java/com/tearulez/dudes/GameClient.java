@@ -13,7 +13,7 @@ class GameClient {
     private int playerId;
     private volatile boolean initialized = false;
 
-    void init() {
+    void init(String serverHost, int serverPort) {
         client = new Client();
         client.start();
 
@@ -47,7 +47,7 @@ class GameClient {
             }
         }));
         try {
-            client.connect(5000, "localhost", Network.port);
+            client.connect(5000, serverHost, serverPort);
             // Server communication after connection can go here, or in Listener#connected().
         } catch (IOException ex) {
             ex.printStackTrace();
