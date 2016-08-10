@@ -53,11 +53,12 @@ class GameAdapter extends ApplicationAdapter {
             shapeRenderer.setColor(Color.BLUE);
             for (Wall wall : state.getWalls()) {
                 int size = wall.getPoints().size();
+                Point position = wall.getPosition();
                 float[] vertices = new float[size * 2];
                 for (int i = 0; i < size; i++) {
                     Point point = wall.getPoints().get(i);
-                    vertices[i * 2] = width / 2 + point.x * scaleFactor;
-                    vertices[i * 2 + 1] = height / 2 + point.y * scaleFactor;
+                    vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
+                    vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
                 }
                 shapeRenderer.polygon(vertices);
             }

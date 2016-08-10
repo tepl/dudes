@@ -76,12 +76,26 @@ class GameServer {
 
     private static GameServer createServer() throws IOException {
         ArrayList<Wall> walls = new ArrayList<>();
-        ArrayList<Point> points = new ArrayList<>();
-        points.add(Point.create(10, -10));
-        points.add(Point.create(20, 0));
-        points.add(Point.create(20, -10));
-        walls.add(Wall.create(points));
-        GameModel gameModel = new GameModel(walls);
+
+        ArrayList<Point> points1 = new ArrayList<>();
+        points1.add(Point.create(-5, -5));
+        points1.add(Point.create(5, 5));
+        points1.add(Point.create(5, -5));
+        walls.add(Wall.create(Point.create(15, -5), points1));
+
+        ArrayList<Point> points2 = new ArrayList<>();
+        points2.add(Point.create(0, 0));
+        points2.add(Point.create(0, 20));
+        points2.add(Point.create(10, 0));
+        walls.add(Wall.create(Point.create(-20, -10), points2));
+
+        ArrayList<Point> points3 = new ArrayList<>();
+        points3.add(Point.create(0, 0));
+        points3.add(Point.create(0, 5));
+        points3.add(Point.create(40, 5));
+        walls.add(Wall.create(Point.create(-20, 10), points3));
+
+        GameModel gameModel = GameModel.create(walls);
         Server server = new Server() {
             protected Connection newConnection() {
                 // By providing our own connection implementation, we can store per
