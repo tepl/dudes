@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
+import java.util.List;
 import java.util.Map;
 
 class GameAdapter extends ApplicationAdapter {
@@ -61,45 +62,52 @@ class GameAdapter extends ApplicationAdapter {
             int scaleFactor = 10;
 
             GameState state = gameClient.getState();
+            List<Wall> walls = state.getWalls();
+            Map<Integer, Point> playerPositions = state.getPositions();
 
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            shapeRenderer.setColor(Color.BLUE);
-            for (Wall wall : state.getWalls()) {
-                int size = wall.getPoints().size();
-                Point position = wall.getPosition();
-                float[] vertices = new float[size * 2];
-                for (int i = 0; i < size; i++) {
-                    Point point = wall.getPoints().get(i);
-                    vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
-                    vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
-                }
-                shapeRenderer.polygon(vertices);
-            }
-            shapeRenderer.end();
-
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            int playerId = gameClient.getPlayerId();
-            for (Map.Entry<Integer, Point> positionEntry : state.getPositions().entrySet()) {
-                Point p = positionEntry.getValue();
-                int characterId = positionEntry.getKey();
-
-
-                if (characterId == playerId) {
-                    shapeRenderer.setColor(Color.GREEN);
-                } else {
-                    shapeRenderer.setColor(Color.RED);
-                }
-                shapeRenderer.circle(
-                        width / 2 + p.x * scaleFactor,
-                        height / 2 + p.y * scaleFactor,
-                        GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
-                );
-            }
-            shapeRenderer.end();
-
+            renderWalls(scaleFactor, walls);
+            renderPlayers(scaleFactor, playerPositions);
             renderCrosshairs();
         }
 
+    }
+
+    private void renderPlayers(int scaleFactor, Map<Integer, Point> playerPositions) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        int playerId = gameClient.getPlayerId();
+        for (Map.Entry<Integer, Point> positionEntry : playerPositions.entrySet()) {
+            Point p = positionEntry.getValue();
+            int characterId = positionEntry.getKey();
+
+            if (characterId == playerId) {
+                shapeRenderer.setColor(Color.GREEN);
+            } else {
+                shapeRenderer.setColor(Color.RED);
+            }
+            shapeRenderer.circle(
+                    width / 2 + p.x * scaleFactor,
+                    height / 2 + p.y * scaleFactor,
+                    GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
+            );
+        }
+        shapeRenderer.end();
+    }
+
+    private void renderWalls(int scaleFactor, List<Wall> walls) {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.BLUE);
+        for (Wall wall : walls) {
+            int size = wall.getPoints().size();
+            Point position = wall.getPosition();
+            float[] vertices = new float[size * 2];
+            for (int i = 0; i < size; i++) {
+                Point point = wall.getPoints().get(i);
+                vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
+                vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
+            }
+            shapeRenderer.polygon(vertices);
+        }
+        shapeRenderer.end();
     }
 
     private void renderCrosshairs() {
