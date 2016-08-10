@@ -69,8 +69,8 @@ class GameServer {
         );
     }
 
-    private void startServing() throws IOException {
-        server.bind(Network.port);
+    private void startServing(int port) throws IOException {
+        server.bind(port);
         server.start();
     }
 
@@ -116,6 +116,6 @@ class GameServer {
         GameServer gameServer = GameServer.createServer();
         gameServer.initListener();
         gameServer.startGameLoop();
-        gameServer.startServing();
+        gameServer.startServing(Integer.valueOf(args[0]));
     }
 }

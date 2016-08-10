@@ -11,15 +11,17 @@ import java.util.Map;
 
 class GameAdapter extends ApplicationAdapter {
     private ShapeRenderer shapeRenderer;
-    private GameClient gameClient;
+    private final GameClient gameClient;
     private int width = 0;
     private int height = 0;
+
+    GameAdapter(GameClient gameClient) {
+        this.gameClient = gameClient;
+    }
 
     @Override
     public void create() {
         shapeRenderer = new ShapeRenderer();
-        gameClient = new GameClient();
-        gameClient.init();
         System.out.println("Game Client is initialized");
     }
 
