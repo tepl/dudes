@@ -18,7 +18,7 @@ class GameClient {
     private volatile boolean initialized = false;
 
     void init(String serverHost, int serverPort) {
-        client = new Client();
+        client = new Client(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE);
         client.start();
 
         // For consistency, the classes to be sent over the network are

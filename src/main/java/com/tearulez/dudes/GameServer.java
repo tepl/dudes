@@ -12,7 +12,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class GameServer {
-
     private final GameModel gameModel;
     private final Server server;
 
@@ -42,7 +41,7 @@ class GameServer {
                     gameModel.bufferMoveAction(connection.playerId, action);
                 }
 
-                if (object instanceof Network.ShootAt){
+                if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
                     gameModel.bufferShootAction(connection.playerId, action);
                 }
@@ -101,7 +100,7 @@ class GameServer {
         walls.add(Wall.create(Point.create(-20, 10), points3));
 
         GameModel gameModel = GameModel.create(walls);
-        Server server = new Server() {
+        Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
                 // By providing our own connection implementation, we can store per
                 // connection state without a connection ID to state look up.

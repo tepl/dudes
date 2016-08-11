@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 class Network {
+    static final int MAX_OBJECT_SIZE = 102400;
+    static final int WRITE_BUFFER_SIZE = MAX_OBJECT_SIZE * 5;
+
     // This registers objects that are going to be sent over the network.
     static void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
