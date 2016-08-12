@@ -3,10 +3,7 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,9 +15,10 @@ class GameModel {
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
+    private static final int MAX_BULLET_COUNT = 100;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
-    private List<Body> bulletBodies = new ArrayList<>();
+    private Queue<Body> bulletBodies = new ArrayDeque<>();
     private static World world = new World(new Vector2(0, 0), true);
     private ArrayList<Wall> walls = new ArrayList<>();
     private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
@@ -120,6 +118,9 @@ class GameModel {
             Vector2 bulletVelocity = aim.cpy().scl(15);
             bullet.setLinearVelocity(bulletVelocity);
             bulletBodies.add(bullet);
+            if (bulletBodies.size() > MAX_BULLET_COUNT) {
+                world.destroyBody(bulletBodies.remove());
+            }
         }
         shootActions.clear();
 
