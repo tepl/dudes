@@ -102,6 +102,12 @@ class GameModel {
 
     synchronized void removePlayer(int playerId) {
         Body body = playerBodies.get(playerId);
+
+        // Do not remove player if player was killed or disconnected
+        if (body == null) {
+            return;
+        }
+
         bodiesToDestroy.add(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
@@ -125,7 +131,7 @@ class GameModel {
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
             Body body = playerBodies.get(playerId);
 
-            // Do not apply force if player was killed or disconnected
+            // Do not shoot if player was killed or disconnected
             if (body == null) {
                 continue;
             }
