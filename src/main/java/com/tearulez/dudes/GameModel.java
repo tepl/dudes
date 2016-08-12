@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 class GameModel {
 
     static final float TIME_STEP = 1.0f / 60;
-    static final float PLAYER_CIRCLE_SIZE = 1;
-    static final float BULLER_CIRCLE_SIZE = 0.2f;
+    static final float PLAYER_CIRCLE_RADIUS = 1;
+    static final float BULLER_CIRCLE_RADIUS = 0.2f;
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
@@ -20,17 +20,23 @@ class GameModel {
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
-    private static World world = new World(new Vector2(0, 0), true);
+
+    private World world;
     private ArrayList<Wall> walls = new ArrayList<>();
     private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
     private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
+    private List<Body> bodiesToDestroy = new ArrayList<>();
     private int nextPlayerId;
 
-    private GameModel() {
+    private GameModel(World world) {
+        this.world = world;
     }
 
     static GameModel create(ArrayList<Wall> walls) {
-        GameModel gameModel = new GameModel();
+        World world = new World(new Vector2(0, 0), true);
+
+        GameModel gameModel = new GameModel(world);
+        world.setContactListener(gameModel.new ListenerClass());
         gameModel.walls = walls;
         for (Wall wall : walls) {
             Point position = wall.getPosition();
@@ -71,19 +77,20 @@ class GameModel {
     synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
-        Body body = createCircleBody(PLAYER_CIRCLE_SIZE, new Vector2());
+        Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2());
+        body.setUserData(PlayerId.create(playerId));
         playerBodies.put(playerId, body);
         playerHealths.put(playerId, Player.MAX_HEALTH);
         return playerId;
     }
 
-    private Body createCircleBody(float circleSize, Vector2 position) {
+    private Body createCircleBody(float circleRadius, Vector2 position) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(position);
         Body body = world.createBody(bodyDef);
         CircleShape shape = new CircleShape();
-        shape.setRadius(circleSize);
+        shape.setRadius(circleRadius);
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
@@ -95,7 +102,7 @@ class GameModel {
 
     synchronized void removePlayer(int playerId) {
         Body body = playerBodies.get(playerId);
-        world.destroyBody(body);
+        bodiesToDestroy.add(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
     }
@@ -105,7 +112,10 @@ class GameModel {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
             Body body = playerBodies.get(playerId);
-            body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
+            // Do not apply force if player was killed or disconnected
+            if (body != null) {
+                body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
+            }
         }
         moveActions.clear();
 
@@ -113,11 +123,19 @@ class GameModel {
             int playerId = action.getKey();
             Network.ShootAt shootAt = action.getValue();
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
-            Vector2 playerPosition = playerBodies.get(playerId).getPosition();
+            Body body = playerBodies.get(playerId);
+
+            // Do not apply force if player was killed or disconnected
+            if (body == null) {
+                continue;
+            }
+
+            Vector2 playerPosition = body.getPosition();
             Vector2 aim = target.cpy().sub(playerPosition).nor();
             // the offset is needed to eliminate bullet-shooter collision
-            Vector2 offset = aim.scl(PLAYER_CIRCLE_SIZE + BULLER_CIRCLE_SIZE);
-            Body bullet = createCircleBody(BULLER_CIRCLE_SIZE, playerPosition.cpy().add(offset));
+            Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLER_CIRCLE_RADIUS);
+            Body bullet = createCircleBody(BULLER_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
+            bullet.setUserData(new Bullet());
             Vector2 bulletVelocity = aim.cpy().scl(15);
             bullet.setLinearVelocity(bulletVelocity);
             bulletBodies.add(bullet);
@@ -128,6 +146,10 @@ class GameModel {
         shootActions.clear();
 
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        for (Body body : bodiesToDestroy) {
+            world.destroyBody(body);
+        }
+        bodiesToDestroy.clear();
     }
 
     synchronized GameState getState() {
@@ -155,4 +177,45 @@ class GameModel {
         );
         return bullets.collect(Collectors.toList());
     }
+
+    private void processHit(Body playerBody, Body bulletBody) {
+        int playerId = ((PlayerId) playerBody.getUserData()).getPlayerId();
+        Vector2 velocity = playerBody.getLinearVelocity().cpy().sub(bulletBody.getLinearVelocity());
+        int health = playerHealths.get(playerId) - (int) velocity.len2() / 10;
+        if (health < 0) {
+            removePlayer(playerId);
+        } else {
+            playerHealths.put(playerId, health);
+        }
+    }
+
+    private class ListenerClass implements ContactListener {
+        @Override
+        public void beginContact(Contact contact) {
+            Body bodyA = contact.getFixtureA().getBody();
+            Body bodyB = contact.getFixtureB().getBody();
+
+            if (bodyA.getUserData() instanceof PlayerId && bodyB.getUserData() instanceof Bullet) {
+                processHit(bodyA, bodyB);
+            } else if (bodyB.getUserData() instanceof PlayerId && bodyA.getUserData() instanceof Bullet) {
+                processHit(bodyB, bodyA);
+            }
+        }
+
+        @Override
+        public void endContact(Contact contact) {
+
+        }
+
+        @Override
+        public void preSolve(Contact contact, Manifold oldManifold) {
+
+        }
+
+        @Override
+        public void postSolve(Contact contact, ContactImpulse impulse) {
+
+        }
+    }
+
 }

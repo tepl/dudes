@@ -87,7 +87,7 @@ class GameAdapter extends ApplicationAdapter {
             shapeRenderer.circle(
                     width / 2 + bullet.x * scaleFactor,
                     height / 2 + bullet.y * scaleFactor,
-                    GameModel.BULLER_CIRCLE_SIZE * scaleFactor
+                    GameModel.BULLER_CIRCLE_RADIUS * scaleFactor
             );
         }
         shapeRenderer.end();
@@ -103,7 +103,7 @@ class GameAdapter extends ApplicationAdapter {
 
             float screenX = width / 2 + position.x * scaleFactor;
             float screenY = height / 2 + position.y * scaleFactor;
-            float radius = GameModel.PLAYER_CIRCLE_SIZE * scaleFactor;
+            float radius = GameModel.PLAYER_CIRCLE_RADIUS * scaleFactor;
             float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
 
             if (characterId == playerId) {
