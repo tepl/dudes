@@ -23,6 +23,7 @@ class Network {
         kryo.register(Wall.class);
         kryo.register(GameState.class);
         kryo.register(ShootAt.class);
+        kryo.register(Player.class);
     }
 
     static class Login {

@@ -18,6 +18,7 @@ class GameModel {
     private static final int MAX_BULLET_COUNT = 100;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
+    private Map<Integer, Integer> playerHealths = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
     private static World world = new World(new Vector2(0, 0), true);
     private ArrayList<Wall> walls = new ArrayList<>();
@@ -72,6 +73,7 @@ class GameModel {
         nextPlayerId += 1;
         Body body = createCircleBody(PLAYER_CIRCLE_SIZE, new Vector2());
         playerBodies.put(playerId, body);
+        playerHealths.put(playerId, Player.MAX_HEALTH);
         return playerId;
     }
 
@@ -95,6 +97,7 @@ class GameModel {
         Body body = playerBodies.get(playerId);
         world.destroyBody(body);
         playerBodies.remove(playerId);
+        playerHealths.remove(playerId);
     }
 
     synchronized void nextStep() {
@@ -128,18 +131,19 @@ class GameModel {
     }
 
     synchronized GameState getState() {
-        return GameState.create(getPlayerPositions(), walls, getBulletPositions());
+        return GameState.create(getPlayers(), walls, getBulletPositions());
     }
 
-    private Map<Integer, Point> getPlayerPositions() {
-        Map<Integer, Point> positions = new HashMap<>();
+    private Map<Integer, Player> getPlayers() {
+        Map<Integer, Player> players = new HashMap<>();
         for (Map.Entry<Integer, Body> entry : playerBodies.entrySet()) {
             int playerId = entry.getKey();
             Vector2 center = entry.getValue().getPosition();
-            Point p = Point.create(center.x, center.y);
-            positions.put(playerId, p);
+            Point position = Point.create(center.x, center.y);
+            Player player = Player.create(position, playerHealths.get(playerId));
+            players.put(playerId, player);
         }
-        return positions;
+        return players;
     }
 
     private List<Point> getBulletPositions() {

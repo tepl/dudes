@@ -73,7 +73,7 @@ class GameAdapter extends ApplicationAdapter {
             GameState state = gameClient.getState();
 
             renderWalls(state.getWalls());
-            renderPlayers(state.getPositions());
+            renderPlayers(state.getPlayers());
             renderBullets(state.getBullets());
             renderCrosshairs();
         }
@@ -93,23 +93,27 @@ class GameAdapter extends ApplicationAdapter {
         shapeRenderer.end();
     }
 
-    private void renderPlayers(Map<Integer, Point> playerPositions) {
+    private void renderPlayers(Map<Integer, Player> players) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         int playerId = gameClient.getPlayerId();
-        for (Map.Entry<Integer, Point> positionEntry : playerPositions.entrySet()) {
-            Point p = positionEntry.getValue();
+        for (Map.Entry<Integer, Player> positionEntry : players.entrySet()) {
             int characterId = positionEntry.getKey();
+            Player player = positionEntry.getValue();
+            Point position = player.getPosition();
+
+            float screenX = width / 2 + position.x * scaleFactor;
+            float screenY = height / 2 + position.y * scaleFactor;
+            float radius = GameModel.PLAYER_CIRCLE_SIZE * scaleFactor;
+            float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
 
             if (characterId == playerId) {
                 shapeRenderer.setColor(Color.GREEN);
             } else {
                 shapeRenderer.setColor(Color.RED);
             }
-            shapeRenderer.circle(
-                    width / 2 + p.x * scaleFactor,
-                    height / 2 + p.y * scaleFactor,
-                    GameModel.PLAYER_CIRCLE_SIZE * scaleFactor
-            );
+            shapeRenderer.circle(screenX, screenY, radius);
+            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.circle(screenX, screenY, radius * healthFactor);
         }
         shapeRenderer.end();
     }
