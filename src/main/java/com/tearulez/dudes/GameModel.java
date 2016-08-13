@@ -67,11 +67,19 @@ class GameModel {
     }
 
     synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
-        moveActions.put(playerId, action);
+        if (isPlayerPresent(playerId)) {
+            moveActions.put(playerId, action);
+        }
     }
 
     synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
-        shootActions.put(playerId, action);
+        if (isPlayerPresent(playerId)) {
+            shootActions.put(playerId, action);
+        }
+    }
+
+    private boolean isPlayerPresent(int playerId) {
+        return playerBodies.containsKey(playerId);
     }
 
     synchronized int registerNewPlayer() {
@@ -101,16 +109,15 @@ class GameModel {
     }
 
     synchronized void removePlayer(int playerId) {
-        Body body = playerBodies.get(playerId);
-
-        // Do not remove player if player was killed or disconnected
-        if (body == null) {
+        if (!isPlayerPresent(playerId)) {
             return;
         }
-
+        Body body = playerBodies.get(playerId);
         bodiesToDestroy.add(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
+        moveActions.remove(playerId);
+        shootActions.remove(playerId);
     }
 
     synchronized void nextStep() {
@@ -118,10 +125,7 @@ class GameModel {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
             Body body = playerBodies.get(playerId);
-            // Do not apply force if player was killed or disconnected
-            if (body != null) {
                 body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
-            }
         }
         moveActions.clear();
 
@@ -130,11 +134,6 @@ class GameModel {
             Network.ShootAt shootAt = action.getValue();
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
             Body body = playerBodies.get(playerId);
-
-            // Do not shoot if player was killed or disconnected
-            if (body == null) {
-                continue;
-            }
 
             Vector2 playerPosition = body.getPosition();
             Vector2 aim = target.cpy().sub(playerPosition).nor();
