@@ -4,6 +4,8 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,6 +14,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class GameServer {
+    private static final Logger log = LoggerFactory.getLogger(GameServer.class);
+
     private final GameModel gameModel;
     private final Server server;
 
@@ -55,11 +59,13 @@ class GameServer {
 
     private void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        log.info("Starting game loop");
         Runnable runnable = () -> {
             try {
                 gameModel.nextStep();
                 Network.UpdateModel updateModel = new Network.UpdateModel();
                 updateModel.state = gameModel.getState();
+                log.debug("sending updated model to clients");
                 server.sendToAllTCP(updateModel);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -116,7 +122,7 @@ class GameServer {
     }
 
     public static void main(String[] args) throws IOException {
-        Log.set(Log.LEVEL_DEBUG);
+        Log.INFO();
         GameServer gameServer = GameServer.createServer();
         gameServer.initListener();
         gameServer.startGameLoop();

@@ -2,12 +2,15 @@ package com.tearulez.dudes;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class GameModel {
+    private static final Logger log = LoggerFactory.getLogger(GameModel.class);
 
     static final float TIME_STEP = 1.0f / 60;
     static final float PLAYER_CIRCLE_RADIUS = 1;
@@ -125,7 +128,7 @@ class GameModel {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
             Body body = playerBodies.get(playerId);
-                body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
+            body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
         }
         moveActions.clear();
 
