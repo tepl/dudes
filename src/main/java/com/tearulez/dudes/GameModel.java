@@ -116,7 +116,7 @@ class GameModel {
             return;
         }
         Body body = playerBodies.get(playerId);
-        bodiesToDestroy.add(body);
+        defferDestruction(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
         moveActions.remove(playerId);
@@ -124,6 +124,24 @@ class GameModel {
     }
 
     synchronized void nextStep() {
+        processMoveActions();
+        processShootActions();
+        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        processPendingDestructions();
+    }
+
+    private void defferDestruction(Body body) {
+        bodiesToDestroy.add(body);
+    }
+
+    private void processPendingDestructions() {
+        for (Body body : bodiesToDestroy) {
+            world.destroyBody(body);
+        }
+        bodiesToDestroy.clear();
+    }
+
+    private void processMoveActions() {
         for (Map.Entry<Integer, Network.MovePlayer> action : moveActions.entrySet()) {
             int playerId = action.getKey();
             Network.MovePlayer move = action.getValue();
@@ -131,7 +149,9 @@ class GameModel {
             body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
         }
         moveActions.clear();
+    }
 
+    private void processShootActions() {
         for (Map.Entry<Integer, Network.ShootAt> action : shootActions.entrySet()) {
             int playerId = action.getKey();
             Network.ShootAt shootAt = action.getValue();
@@ -152,12 +172,6 @@ class GameModel {
             }
         }
         shootActions.clear();
-
-        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-        for (Body body : bodiesToDestroy) {
-            world.destroyBody(body);
-        }
-        bodiesToDestroy.clear();
     }
 
     synchronized GameState getState() {
