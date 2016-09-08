@@ -20,6 +20,8 @@ class GameModel {
     private static final int POSITION_ITERATIONS = 3;
     private static final int MAX_BULLET_COUNT = 100;
 
+    private static final float MAX_SPEED = 10f;
+
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
@@ -128,6 +130,7 @@ class GameModel {
         processShootActions();
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         processPendingDestructions();
+        step++;
     }
 
     private void defferDestruction(Body body) {
@@ -141,14 +144,31 @@ class GameModel {
         bodiesToDestroy.clear();
     }
 
+    private int step;
+    private int numActions;
+
     private void processMoveActions() {
-        for (Map.Entry<Integer, Network.MovePlayer> action : moveActions.entrySet()) {
-            int playerId = action.getKey();
-            Network.MovePlayer move = action.getValue();
+        for (Integer playerId : getPlayerIds()) {
+            Network.MovePlayer move = moveActions.get(playerId);
             Body body = playerBodies.get(playerId);
-            body.applyForceToCenter(move.dx * 5, move.dy * 5, true);
+            if (move == null) {
+                Vector2 brakingForce = body.getLinearVelocity().cpy().scl(-20);
+                body.applyForceToCenter(brakingForce, true);
+            } else if (body.getLinearVelocity().len() < MAX_SPEED) {
+                body.applyForceToCenter(move.dx * 100, move.dy * 100, true);
+                numActions++;
+            }
         }
         moveActions.clear();
+        if (step == 60) {
+            log.info("Number of actions: " + numActions);
+            step = 0;
+            numActions = 0;
+        }
+    }
+
+    private Iterable<Integer> getPlayerIds() {
+        return playerBodies.keySet();
     }
 
     private void processShootActions() {
