@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -18,6 +21,11 @@ class GameServer {
 
     private final GameModel gameModel;
     private final Server server;
+    private int nextPlayerId;
+    private List<Integer> newPlayers = new ArrayList<>();
+    private List<Integer> playersToRemove = new ArrayList<>();
+    private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
+    private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
 
     private GameServer(GameModel gameModel, Server server) {
         this.gameModel = gameModel;
@@ -34,7 +42,7 @@ class GameServer {
 
                 if (object instanceof Network.Login) {
                     Network.Registered registered = new Network.Registered();
-                    int newPlayerId = gameModel.registerNewPlayer();
+                    int newPlayerId = registerNewPlayer();
                     registered.id = newPlayerId;
                     connection.playerId = newPlayerId;
                     server.sendToTCP(c.getID(), registered);
@@ -42,19 +50,38 @@ class GameServer {
 
                 if (object instanceof Network.MovePlayer) {
                     Network.MovePlayer action = (Network.MovePlayer) object;
-                    gameModel.bufferMoveAction(connection.playerId, action);
+                    bufferMoveAction(connection.playerId, action);
                 }
 
                 if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
-                    gameModel.bufferShootAction(connection.playerId, action);
+                    bufferShootAction(connection.playerId, action);
                 }
             }
 
             public void disconnected(Connection c) {
-                gameModel.removePlayer(((PlayerConnection) c).playerId);
+                removePlayer(((PlayerConnection) c).playerId);
             }
         });
+    }
+
+    private synchronized int registerNewPlayer() {
+        int playerId = nextPlayerId;
+        nextPlayerId += 1;
+        newPlayers.add(playerId);
+        return playerId;
+    }
+
+    private synchronized void removePlayer(int playerId) {
+        playersToRemove.add(playerId);
+    }
+
+    private synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
+        moveActions.put(playerId, action);
+    }
+
+    private synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
+        shootActions.put(playerId, action);
     }
 
     private void startGameLoop() {
@@ -62,7 +89,13 @@ class GameServer {
         log.info("Starting game loop");
         Runnable runnable = () -> {
             try {
-                gameModel.nextStep();
+                synchronized (GameServer.this) {
+                    gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions);
+                    newPlayers.clear();
+                    playersToRemove.clear();
+                    moveActions.clear();
+                    shootActions.clear();
+                }
                 Network.UpdateModel updateModel = new Network.UpdateModel();
                 updateModel.state = gameModel.getState();
                 log.debug("sending updated model to clients");

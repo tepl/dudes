@@ -28,10 +28,7 @@ class GameModel {
 
     private World world;
     private ArrayList<Wall> walls = new ArrayList<>();
-    private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
-    private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
     private List<Body> bodiesToDestroy = new ArrayList<>();
-    private int nextPlayerId;
 
     private GameModel(World world) {
         this.world = world;
@@ -71,30 +68,37 @@ class GameModel {
         return gameModel;
     }
 
-    synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
-        if (isPlayerPresent(playerId)) {
-            moveActions.put(playerId, action);
-        }
-    }
-
-    synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
-        if (isPlayerPresent(playerId)) {
-            shootActions.put(playerId, action);
-        }
-    }
-
     private boolean isPlayerPresent(int playerId) {
         return playerBodies.containsKey(playerId);
     }
 
-    synchronized int registerNewPlayer() {
-        int playerId = nextPlayerId;
-        nextPlayerId += 1;
-        Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2());
-        body.setUserData(PlayerId.create(playerId));
-        playerBodies.put(playerId, body);
-        playerHealths.put(playerId, Player.MAX_HEALTH);
-        return playerId;
+    void nextStep(List<Integer> newPlayers, List<Integer> playersToRemove, Map<Integer, Network.MovePlayer> moveActions, Map<Integer, Network.ShootAt> shootActions) {
+        processNewPlayers(newPlayers);
+        playersToRemove.forEach(this::removePlayer);
+        processMoveActions(moveActions);
+        processShootActions(shootActions);
+        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+        processPendingDestructions();
+        step++;
+    }
+
+    private void processNewPlayers(List<Integer> newPlayers) {
+        for (Integer playerId : newPlayers) {
+            Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2());
+            body.setUserData(PlayerId.create(playerId));
+            playerBodies.put(playerId, body);
+            playerHealths.put(playerId, Player.MAX_HEALTH);
+        }
+    }
+
+    private void removePlayer(int playerId) {
+        if (!isPlayerPresent(playerId)) {
+            return;
+        }
+        Body body = playerBodies.get(playerId);
+        defferDestruction(body);
+        playerBodies.remove(playerId);
+        playerHealths.remove(playerId);
     }
 
     private Body createCircleBody(float circleRadius, Vector2 position) {
@@ -113,26 +117,6 @@ class GameModel {
         return body;
     }
 
-    synchronized void removePlayer(int playerId) {
-        if (!isPlayerPresent(playerId)) {
-            return;
-        }
-        Body body = playerBodies.get(playerId);
-        defferDestruction(body);
-        playerBodies.remove(playerId);
-        playerHealths.remove(playerId);
-        moveActions.remove(playerId);
-        shootActions.remove(playerId);
-    }
-
-    synchronized void nextStep() {
-        processMoveActions();
-        processShootActions();
-        world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-        processPendingDestructions();
-        step++;
-    }
-
     private void defferDestruction(Body body) {
         bodiesToDestroy.add(body);
     }
@@ -147,7 +131,7 @@ class GameModel {
     private int step;
     private int numActions;
 
-    private void processMoveActions() {
+    private void processMoveActions(Map<Integer, Network.MovePlayer> moveActions) {
         for (Integer playerId : getPlayerIds()) {
             Network.MovePlayer move = moveActions.get(playerId);
             Body body = playerBodies.get(playerId);
@@ -159,7 +143,6 @@ class GameModel {
                 numActions++;
             }
         }
-        moveActions.clear();
         if (step == 60) {
             log.info("Number of actions: " + numActions);
             step = 0;
@@ -171,9 +154,12 @@ class GameModel {
         return playerBodies.keySet();
     }
 
-    private void processShootActions() {
+    private void processShootActions(Map<Integer, Network.ShootAt> shootActions) {
         for (Map.Entry<Integer, Network.ShootAt> action : shootActions.entrySet()) {
             int playerId = action.getKey();
+            if (!isPlayerPresent(playerId)) {
+                continue;
+            }
             Network.ShootAt shootAt = action.getValue();
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
             Body body = playerBodies.get(playerId);
@@ -191,10 +177,9 @@ class GameModel {
                 world.destroyBody(bulletBodies.remove());
             }
         }
-        shootActions.clear();
     }
 
-    synchronized GameState getState() {
+    GameState getState() {
         return GameState.create(getPlayers(), walls, getBulletPositions());
     }
 
