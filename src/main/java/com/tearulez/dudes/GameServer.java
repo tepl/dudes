@@ -8,16 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 class GameServer {
     private static final Logger log = LoggerFactory.getLogger(GameServer.class);
+    private static final int INITIAL_MOVE_ACTION_TTL = 3;
 
     private final GameModel gameModel;
     private final Server server;
@@ -26,6 +24,7 @@ class GameServer {
     private List<Integer> playersToRemove = new ArrayList<>();
     private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
     private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
+    private Map<Integer, Integer> moveActionsTTLs = new HashMap<>();
 
     private GameServer(GameModel gameModel, Server server) {
         this.gameModel = gameModel;
@@ -78,6 +77,7 @@ class GameServer {
 
     private synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
         moveActions.put(playerId, action);
+        moveActionsTTLs.put(playerId, INITIAL_MOVE_ACTION_TTL);
     }
 
     private synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
@@ -93,7 +93,9 @@ class GameServer {
                     gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions);
                     newPlayers.clear();
                     playersToRemove.clear();
-                    moveActions.clear();
+                    for (Integer playerId : updateMoveActionsTTLs()) {
+                        moveActions.remove(playerId);
+                    }
                     shootActions.clear();
                 }
                 Network.UpdateModel updateModel = new Network.UpdateModel();
@@ -110,6 +112,21 @@ class GameServer {
                 (int) (GameModel.TIME_STEP * 1000),
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    private List<Integer> updateMoveActionsTTLs() {
+        Map<Integer, Integer> newMoveActionsTTLs = new HashMap<>();
+        List<Integer> moveActionsToRemove = new ArrayList<>();
+        for (Integer playerId : moveActionsTTLs.keySet()) {
+            Integer ttl = moveActionsTTLs.get(playerId) - 1;
+            if (ttl > 0) {
+                newMoveActionsTTLs.put(playerId, ttl);
+            } else {
+                moveActionsToRemove.add(playerId);
+            }
+        }
+        moveActionsTTLs = newMoveActionsTTLs;
+        return moveActionsToRemove;
     }
 
     private void startServing(int port) throws IOException {

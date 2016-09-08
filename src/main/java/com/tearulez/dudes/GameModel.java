@@ -138,8 +138,10 @@ class GameModel {
             if (move == null) {
                 Vector2 brakingForce = body.getLinearVelocity().cpy().scl(-20);
                 body.applyForceToCenter(brakingForce, true);
-            } else if (body.getLinearVelocity().len() < MAX_SPEED) {
-                body.applyForceToCenter(move.dx * 100, move.dy * 100, true);
+            } else {
+                if (body.getLinearVelocity().len() < MAX_SPEED) {
+                    body.applyForceToCenter(move.dx * 100, move.dy * 100, true);
+                }
                 numActions++;
             }
         }
