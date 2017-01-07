@@ -9,16 +9,19 @@ import java.util.List;
 import java.util.Map;
 
 class GameScreen extends ScreenAdapter {
+    private final int playerId;
+    private final PlayerControls playerControls;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final GameClient gameClient;
     private int width = 0;
     private int height = 0;
     private int mouseX;
     private int mouseY;
     private final int scaleFactor;
+    private GameState state;
 
-    GameScreen(GameClient gameClient) {
-        this.gameClient = gameClient;
+    GameScreen(int playerId, PlayerControls playerControls) {
+        this.playerId = playerId;
+        this.playerControls = playerControls;
         scaleFactor = 10;
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -32,7 +35,7 @@ class GameScreen extends ScreenAdapter {
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 float x = (screenX - width / 2) / scaleFactor;
                 float y = -(screenY - height / 2) / scaleFactor;
-                gameClient.shootAt(x, y);
+                playerControls.shootAt(x, y);
                 return true;
             }
         });
@@ -57,19 +60,19 @@ class GameScreen extends ScreenAdapter {
         if (isOneOfKeysPressed(Input.Keys.UP, Input.Keys.W)) dy += 1;
         if (isOneOfKeysPressed(Input.Keys.DOWN, Input.Keys.S)) dy -= 1;
         if (dx != 0 || dy != 0) {
-            gameClient.movePlayer(dx, dy);
+            playerControls.movePlayer(dx, dy);
         }
 
-        if (gameClient.isInitialized()) {
-
-            GameState state = gameClient.getState();
-
+        if (state != null) {
             renderWalls(state.getWalls());
             renderPlayers(state.getPlayers());
             renderBullets(state.getBullets());
             renderCrosshairs();
         }
+    }
 
+    void setGameState(GameState state) {
+        this.state = state;
     }
 
     private boolean isOneOfKeysPressed(int... keys) {
@@ -96,7 +99,6 @@ class GameScreen extends ScreenAdapter {
 
     private void renderPlayers(Map<Integer, Player> players) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        int playerId = gameClient.getPlayerId();
         for (Map.Entry<Integer, Player> positionEntry : players.entrySet()) {
             int characterId = positionEntry.getKey();
             Player player = positionEntry.getValue();

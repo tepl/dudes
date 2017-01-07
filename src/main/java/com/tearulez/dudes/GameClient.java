@@ -5,19 +5,18 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import java.io.IOException;
-import java.util.Collections;
 
-class GameClient {
+class GameClient implements PlayerControls {
+    private final String serverHost;
+    private final int serverPort;
     private Client client;
-    private GameState state = GameState.create(
-            Collections.emptyMap(),
-            Collections.emptyList(),
-            Collections.emptyList()
-    );
-    private int playerId;
-    private volatile boolean initialized = false;
 
-    void init(String serverHost, int serverPort) {
+    GameClient(String serverHost, int serverPort) {
+        this.serverHost = serverHost;
+        this.serverPort = serverPort;
+    }
+
+    void init(DudesGame game) {
         client = new Client(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE);
         client.start();
 
@@ -35,14 +34,13 @@ class GameClient {
                 // Player registered
                 if (object instanceof Network.Registered) {
                     Network.Registered registered = (Network.Registered) object;
-                    playerId = registered.id;
-                    initialized = true;
+                    game.onPlayerLogin(registered.id);
                 }
 
                 // Update received
                 if (object instanceof Network.UpdateModel) {
                     Network.UpdateModel updateModel = (Network.UpdateModel) object;
-                    state = updateModel.state;
+                    game.onGameStateUpdate(updateModel.state);
                 }
             }
 
@@ -58,30 +56,18 @@ class GameClient {
         }
     }
 
-    void movePlayer(float dx, float dy) {
+    public void movePlayer(float dx, float dy) {
         Network.MovePlayer movePlayer = new Network.MovePlayer();
         movePlayer.dx = dx;
         movePlayer.dy = dy;
         client.sendTCP(movePlayer);
     }
 
-    void shootAt(float x, float y) {
+    public void shootAt(float x, float y) {
         Network.ShootAt shootAt = new Network.ShootAt();
         shootAt.x = x;
         shootAt.y = y;
         client.sendTCP(shootAt);
-    }
-
-    GameState getState() {
-        return state;
-    }
-
-    int getPlayerId() {
-        return playerId;
-    }
-
-    boolean isInitialized() {
-        return initialized;
     }
 
     void closeServerConnection() {
