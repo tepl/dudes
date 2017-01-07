@@ -60,10 +60,10 @@ class GameAdapter extends ApplicationAdapter {
 
         int dx = 0;
         int dy = 0;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) dx -= 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) dx += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) dy += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) dy -= 1;
+        if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
+        if (isOneOfKeysPressed(Input.Keys.RIGHT, Input.Keys.D)) dx += 1;
+        if (isOneOfKeysPressed(Input.Keys.UP, Input.Keys.W)) dy += 1;
+        if (isOneOfKeysPressed(Input.Keys.DOWN, Input.Keys.S)) dy -= 1;
         if (dx != 0 || dy != 0) {
             gameClient.movePlayer(dx, dy);
         }
@@ -78,6 +78,15 @@ class GameAdapter extends ApplicationAdapter {
             renderCrosshairs();
         }
 
+    }
+
+    private boolean isOneOfKeysPressed(int... keys) {
+        for (int key : keys) {
+            if (Gdx.input.isKeyPressed(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void renderBullets(List<Point> bullets) {
