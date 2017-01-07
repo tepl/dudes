@@ -1,9 +1,6 @@
 package com.tearulez.dudes;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -11,8 +8,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.List;
 import java.util.Map;
 
-class GameAdapter extends ApplicationAdapter {
-    private ShapeRenderer shapeRenderer;
+class GameScreen extends ScreenAdapter {
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final GameClient gameClient;
     private int width = 0;
     private int height = 0;
@@ -20,14 +17,9 @@ class GameAdapter extends ApplicationAdapter {
     private int mouseY;
     private final int scaleFactor;
 
-    GameAdapter(GameClient gameClient) {
+    GameScreen(GameClient gameClient) {
         this.gameClient = gameClient;
         scaleFactor = 10;
-    }
-
-    @Override
-    public void create() {
-        shapeRenderer = new ShapeRenderer();
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean mouseMoved(int screenX, int screenY) {
@@ -54,7 +46,7 @@ class GameAdapter extends ApplicationAdapter {
     }
 
     @Override
-    public void render() {
+    public void render(float delta) {
         Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
