@@ -7,13 +7,13 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class LoadingScreen extends ScreenAdapter {
+public class RespawnScreen extends ScreenAdapter {
     private final BitmapFont font = new BitmapFont();
     private final Batch batch = new SpriteBatch();
-    private final String text;
+    private final Runnable callback;
 
-    LoadingScreen(String text) {
-        this.text = text;
+    RespawnScreen(Runnable callback) {
+        this.callback = callback;
     }
 
     @Override
@@ -22,9 +22,13 @@ public class LoadingScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        font.draw(batch, "Dudes", 100, 150);
-        font.draw(batch, text, 100, 100);
+        font.draw(batch, "Click to respawn", 100, 150);
         batch.end();
+
+        if (Gdx.input.isTouched()) {
+            callback.run();
+            dispose();
+        }
     }
 
     @Override

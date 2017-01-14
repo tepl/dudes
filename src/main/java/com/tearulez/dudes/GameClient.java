@@ -32,15 +32,20 @@ class GameClient implements PlayerControls {
 
             public void received(Connection connection, Object object) {
                 // Player registered
-                if (object instanceof Network.Registered) {
-                    Network.Registered registered = (Network.Registered) object;
-                    game.onPlayerLogin(registered.id);
+                if (object instanceof Network.Respawned) {
+                    Network.Respawned respawned = (Network.Respawned) object;
+                    game.onPlayerRespawn(respawned.id);
                 }
 
                 // Update received
                 if (object instanceof Network.UpdateModel) {
                     Network.UpdateModel updateModel = (Network.UpdateModel) object;
                     game.onGameStateUpdate(updateModel.stateSnapshot);
+                }
+
+                // Player died
+                if (object instanceof Network.PlayerDeath) {
+                    game.onPlayerDeath();
                 }
             }
 
@@ -68,6 +73,10 @@ class GameClient implements PlayerControls {
         shootAt.x = x;
         shootAt.y = y;
         client.sendTCP(shootAt);
+    }
+
+    void respawn() {
+        client.sendTCP(new Network.RespawnRequest());
     }
 
     void closeServerConnection() {

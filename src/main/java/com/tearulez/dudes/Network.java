@@ -14,7 +14,7 @@ class Network {
     static void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
         kryo.register(Login.class);
-        kryo.register(Registered.class);
+        kryo.register(Respawned.class);
         kryo.register(UpdateModel.class);
         kryo.register(MovePlayer.class);
         kryo.register(HashMap.class);
@@ -24,12 +24,14 @@ class Network {
         kryo.register(StateSnapshot.class);
         kryo.register(ShootAt.class);
         kryo.register(Player.class);
+        kryo.register(PlayerDeath.class);
+        kryo.register(RespawnRequest.class);
     }
 
     static class Login {
     }
 
-    static class Registered {
+    static class Respawned {
         int id;
     }
 
@@ -43,5 +45,11 @@ class Network {
 
     static class ShootAt {
         float x, y;
+    }
+
+    static class PlayerDeath {
+    }
+
+    static class RespawnRequest {
     }
 }

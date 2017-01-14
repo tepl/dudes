@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +26,7 @@ class GameServer {
     private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
     private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
     private Map<Integer, Integer> moveActionsTTLs = new HashMap<>();
+    private Map<Integer, Connection> playerIdToConnection = new ConcurrentHashMap<>();
 
     private GameServer(GameModel gameModel, Server server) {
         this.gameModel = gameModel;
@@ -40,11 +42,12 @@ class GameServer {
                 PlayerConnection connection = (PlayerConnection) c;
 
                 if (object instanceof Network.Login) {
-                    Network.Registered registered = new Network.Registered();
+                    Network.Respawned respawned = new Network.Respawned();
                     int newPlayerId = registerNewPlayer();
-                    registered.id = newPlayerId;
+                    respawned.id = newPlayerId;
                     connection.playerId = newPlayerId;
-                    server.sendToTCP(c.getID(), registered);
+                    playerIdToConnection.put(newPlayerId, connection);
+                    server.sendToTCP(c.getID(), respawned);
                 }
 
                 if (object instanceof Network.MovePlayer) {
@@ -56,10 +59,19 @@ class GameServer {
                     Network.ShootAt action = (Network.ShootAt) object;
                     bufferShootAction(connection.playerId, action);
                 }
+
+                if (object instanceof Network.RespawnRequest) {
+                    addPlayer(connection.playerId);
+                    Network.Respawned respawned = new Network.Respawned();
+                    respawned.id = connection.playerId;
+                    server.sendToTCP(c.getID(), respawned);
+                }
             }
 
             public void disconnected(Connection c) {
-                removePlayer(((PlayerConnection) c).playerId);
+                int playerId = ((PlayerConnection) c).playerId;
+                removePlayer(playerId);
+                playerIdToConnection.remove(playerId);
             }
         });
     }
@@ -67,8 +79,12 @@ class GameServer {
     private synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
-        newPlayers.add(playerId);
+        addPlayer(playerId);
         return playerId;
+    }
+
+    private synchronized void addPlayer(int playerId) {
+        newPlayers.add(playerId);
     }
 
     private synchronized void removePlayer(int playerId) {
@@ -102,6 +118,11 @@ class GameServer {
                 updateModel.stateSnapshot = gameModel.getStateSnapshot();
                 log.debug("sending updated model to clients");
                 server.sendToAllTCP(updateModel);
+
+                Network.PlayerDeath death = new Network.PlayerDeath();
+                for (Integer playerId : gameModel.getKilledPlayers()) {
+                    server.sendToTCP(playerIdToConnection.get(playerId).getID(), death);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

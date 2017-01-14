@@ -22,7 +22,7 @@ public class DudesGame extends Game {
         addDelayedAction(() -> this.stateSnapshot = stateSnapshot);
     }
 
-    void onPlayerLogin(int playerId) {
+    void onPlayerRespawn(int playerId) {
         addDelayedAction(() -> {
             GameState gameState = () -> stateSnapshot;
             gameScreen = new GameScreen(playerId, gameClient, gameState);
@@ -30,10 +30,19 @@ public class DudesGame extends Game {
         });
     }
 
+    void onPlayerDeath() {
+        addDelayedAction(() -> setScreen(new RespawnScreen(this::respawn)));
+    }
+
+    private void respawn() {
+        gameClient.respawn();
+        setScreen(new LoadingScreen("Respawning"));
+    }
+
     @Override
     public void create() {
         gameClient.init(this);
-        setScreen(new LoadingScreen());
+        setScreen(new LoadingScreen("Connecting"));
     }
 
     @Override
@@ -44,4 +53,5 @@ public class DudesGame extends Game {
         delayedActions.clear();
         super.render();
     }
+
 }

@@ -31,6 +31,7 @@ class GameModel {
     private World world;
     private ArrayList<Wall> walls = new ArrayList<>();
     private List<Body> bodiesToDestroy = new ArrayList<>();
+    private List<Integer> killedPlayers = new ArrayList<>();
 
     private GameModel(World world) {
         this.world = world;
@@ -75,6 +76,7 @@ class GameModel {
     }
 
     void nextStep(List<Integer> newPlayers, List<Integer> playersToRemove, Map<Integer, Network.MovePlayer> moveActions, Map<Integer, Network.ShootAt> shootActions) {
+        cleanUp();
         processNewPlayers(newPlayers);
         playersToRemove.forEach(this::removePlayer);
         processMoveActions(moveActions);
@@ -82,6 +84,10 @@ class GameModel {
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         processPendingDestructions();
         step++;
+    }
+
+    private void cleanUp() {
+        killedPlayers.clear();
     }
 
     private void processNewPlayers(List<Integer> newPlayers) {
@@ -223,9 +229,14 @@ class GameModel {
         int health = playerHealths.get(playerId) - (int) velocity.len2() / 10;
         if (health < 0) {
             removePlayer(playerId);
+            killedPlayers.add(playerId);
         } else {
             playerHealths.put(playerId, health);
         }
+    }
+
+    List<Integer> getKilledPlayers() {
+        return killedPlayers;
     }
 
     private class ListenerClass implements ContactListener {
