@@ -99,7 +99,7 @@ class GameServer {
                     shootActions.clear();
                 }
                 Network.UpdateModel updateModel = new Network.UpdateModel();
-                updateModel.state = gameModel.getState();
+                updateModel.stateSnapshot = gameModel.getStateSnapshot();
                 log.debug("sending updated model to clients");
                 server.sendToAllTCP(updateModel);
             } catch (Exception e) {
@@ -158,8 +158,6 @@ class GameServer {
         GameModel gameModel = GameModel.create(walls);
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
-                // By providing our own connection implementation, we can store per
-                // connection state without a connection ID to state look up.
                 return new PlayerConnection();
             }
         };

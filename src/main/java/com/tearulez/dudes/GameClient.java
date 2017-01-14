@@ -40,7 +40,7 @@ class GameClient implements PlayerControls {
                 // Update received
                 if (object instanceof Network.UpdateModel) {
                     Network.UpdateModel updateModel = (Network.UpdateModel) object;
-                    game.onGameStateUpdate(updateModel.state);
+                    game.onGameStateUpdate(updateModel.stateSnapshot);
                 }
             }
 

@@ -21,7 +21,7 @@ class Network {
         kryo.register(ArrayList.class);
         kryo.register(Point.class);
         kryo.register(Wall.class);
-        kryo.register(GameState.class);
+        kryo.register(StateSnapshot.class);
         kryo.register(ShootAt.class);
         kryo.register(Player.class);
     }
@@ -34,7 +34,7 @@ class Network {
     }
 
     static class UpdateModel {
-        GameState state;
+        StateSnapshot stateSnapshot;
     }
 
     static class MovePlayer {

@@ -17,11 +17,12 @@ class GameScreen extends ScreenAdapter {
     private int mouseX;
     private int mouseY;
     private final int scaleFactor;
-    private GameState state;
+    private final GameState state;
 
-    GameScreen(int playerId, PlayerControls playerControls) {
+    GameScreen(int playerId, PlayerControls playerControls, GameState state) {
         this.playerId = playerId;
         this.playerControls = playerControls;
+        this.state = state;
         scaleFactor = 10;
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -63,16 +64,14 @@ class GameScreen extends ScreenAdapter {
             playerControls.movePlayer(dx, dy);
         }
 
-        if (state != null) {
-            renderWalls(state.getWalls());
-            renderPlayers(state.getPlayers());
-            renderBullets(state.getBullets());
+        StateSnapshot stateSnapshot = state.snapshot();
+
+        if (stateSnapshot != null) {
+            renderWalls(stateSnapshot.getWalls());
+            renderPlayers(stateSnapshot.getPlayers());
+            renderBullets(stateSnapshot.getBullets());
             renderCrosshairs();
         }
-    }
-
-    void setGameState(GameState state) {
-        this.state = state;
     }
 
     private boolean isOneOfKeysPressed(int... keys) {

@@ -1,33 +1,5 @@
 package com.tearulez.dudes;
 
-import java.util.List;
-import java.util.Map;
-
-class GameState {
-    private Map<Integer, Player> players;
-    private List<Wall> walls;
-    private List<Point> bullets;
-
-    private GameState() {
-    }
-
-    static GameState create(Map<Integer, Player> players, List<Wall> walls, List<Point> bullets) {
-        GameState state = new GameState();
-        state.players = players;
-        state.walls = walls;
-        state.bullets = bullets;
-        return state;
-    }
-
-    Map<Integer, Player> getPlayers() {
-        return players;
-    }
-
-    List<Wall> getWalls() {
-        return walls;
-    }
-
-    List<Point> getBullets() {
-        return bullets;
-    }
+public interface GameState {
+    StateSnapshot snapshot();
 }

@@ -8,7 +8,7 @@ public class DudesGame extends Game {
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
     private GameScreen gameScreen;
-    private boolean playerLoggedIn = false;
+    private StateSnapshot stateSnapshot;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -18,18 +18,14 @@ public class DudesGame extends Game {
         delayedActions.add(action);
     }
 
-    void onGameStateUpdate(GameState state) {
-        addDelayedAction(() -> {
-            if (playerLoggedIn) {
-                gameScreen.setGameState(state);
-            }
-        });
+    void onGameStateUpdate(StateSnapshot stateSnapshot) {
+        addDelayedAction(() -> this.stateSnapshot = stateSnapshot);
     }
 
     void onPlayerLogin(int playerId) {
         addDelayedAction(() -> {
-            playerLoggedIn = true;
-            gameScreen = new GameScreen(playerId, gameClient);
+            GameState gameState = () -> stateSnapshot;
+            gameScreen = new GameScreen(playerId, gameClient, gameState);
             setScreen(gameScreen);
         });
     }

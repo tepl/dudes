@@ -181,8 +181,8 @@ class GameModel {
         }
     }
 
-    GameState getState() {
-        return GameState.create(getPlayers(), walls, getBulletPositions());
+    StateSnapshot getStateSnapshot() {
+        return StateSnapshot.create(getPlayers(), walls, getBulletPositions());
     }
 
     private Map<Integer, Player> getPlayers() {
