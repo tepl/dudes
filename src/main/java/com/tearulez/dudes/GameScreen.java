@@ -88,7 +88,7 @@ class GameScreen extends ScreenAdapter {
             shapeRenderer.circle(
                     width / 2 + bullet.x * scaleFactor,
                     height / 2 + bullet.y * scaleFactor,
-                    GameModel.BULLER_CIRCLE_RADIUS * scaleFactor
+                    GameModel.BULLET_CIRCLE_RADIUS * scaleFactor
             );
         }
         shapeRenderer.end();

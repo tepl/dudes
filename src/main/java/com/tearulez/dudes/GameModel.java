@@ -14,13 +14,15 @@ class GameModel {
 
     static final float TIME_STEP = 1.0f / 60;
     static final float PLAYER_CIRCLE_RADIUS = 1;
-    static final float BULLER_CIRCLE_RADIUS = 0.2f;
+    static final float BULLET_CIRCLE_RADIUS = 0.2f;
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;
     private static final int MAX_BULLET_COUNT = 100;
 
     private static final float MAX_SPEED = 10f;
+    private static final int FORCE_SCALE = 100;
+    private static final int BREAKING_FORCE = 20;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
@@ -136,12 +138,20 @@ class GameModel {
             Network.MovePlayer move = moveActions.get(playerId);
             Body body = playerBodies.get(playerId);
             if (move == null) {
-                Vector2 brakingForce = body.getLinearVelocity().cpy().scl(-20);
+                Vector2 brakingForce = body.getLinearVelocity().cpy().scl(-BREAKING_FORCE);
                 body.applyForceToCenter(brakingForce, true);
             } else {
-                if (body.getLinearVelocity().len() < MAX_SPEED) {
-                    body.applyForceToCenter(move.dx * 100, move.dy * 100, true);
+                Vector2 force = new Vector2(move.dx, move.dy);
+                force.scl(FORCE_SCALE);
+                if (body.getLinearVelocity().len() > MAX_SPEED) {
+                    Vector2 heading = body.getLinearVelocity().cpy().nor();
+                    float dot = force.dot(heading);
+                    if (dot > 0) {
+                        heading.scl(dot);
+                        force.sub(heading);
+                    }
                 }
+                body.applyForceToCenter(force, true);
                 numActions++;
             }
         }
@@ -169,8 +179,8 @@ class GameModel {
             Vector2 playerPosition = body.getPosition();
             Vector2 aim = target.cpy().sub(playerPosition).nor();
             // the offset is needed to eliminate bullet-shooter collision
-            Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLER_CIRCLE_RADIUS);
-            Body bullet = createCircleBody(BULLER_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
+            Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
+            Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
             bullet.setUserData(new Bullet());
             Vector2 bulletVelocity = aim.cpy().scl(15);
             bullet.setLinearVelocity(bulletVelocity);
