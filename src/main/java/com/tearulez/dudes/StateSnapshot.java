@@ -1,5 +1,6 @@
 package com.tearulez.dudes;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,10 @@ class StateSnapshot {
         state.walls = walls;
         state.bullets = bullets;
         return state;
+    }
+
+    static StateSnapshot empty() {
+        return create(Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
     }
 
     Map<Integer, Player> getPlayers() {

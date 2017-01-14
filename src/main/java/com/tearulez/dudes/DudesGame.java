@@ -8,7 +8,7 @@ public class DudesGame extends Game {
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
     private GameScreen gameScreen;
-    private StateSnapshot stateSnapshot;
+    private StateSnapshot stateSnapshot = StateSnapshot.empty();
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;

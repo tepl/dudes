@@ -66,12 +66,10 @@ class GameScreen extends ScreenAdapter {
 
         StateSnapshot stateSnapshot = state.snapshot();
 
-        if (stateSnapshot != null) {
-            renderWalls(stateSnapshot.getWalls());
-            renderPlayers(stateSnapshot.getPlayers());
-            renderBullets(stateSnapshot.getBullets());
-            renderCrosshairs();
-        }
+        renderWalls(stateSnapshot.getWalls());
+        renderPlayers(stateSnapshot.getPlayers());
+        renderBullets(stateSnapshot.getBullets());
+        renderCrosshairs();
     }
 
     private boolean isOneOfKeysPressed(int... keys) {
