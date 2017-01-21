@@ -13,10 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 class GameServer {
     private static final Logger log = LoggerFactory.getLogger(GameServer.class);
@@ -27,10 +27,6 @@ class GameServer {
     private int nextPlayerId;
     private List<Integer> newPlayers = new ArrayList<>();
     private List<Integer> playersToRemove = new ArrayList<>();
-    private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
-    private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
-    private Map<Integer, Integer> moveActionsTTLs = new HashMap<>();
-    private Map<Integer, Connection> playerIdToConnection = new ConcurrentHashMap<>();
 
     private GameServer(GameModel gameModel, Server server) {
         this.gameModel = gameModel;
@@ -50,18 +46,17 @@ class GameServer {
                     int newPlayerId = registerNewPlayer();
                     respawned.id = newPlayerId;
                     connection.playerId = newPlayerId;
-                    playerIdToConnection.put(newPlayerId, connection);
                     server.sendToTCP(c.getID(), respawned);
                 }
 
                 if (object instanceof Network.MovePlayer) {
                     Network.MovePlayer action = (Network.MovePlayer) object;
-                    bufferMoveAction(connection.playerId, action);
+                    connection.acceptMoveAction(action);
                 }
 
                 if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
-                    bufferShootAction(connection.playerId, action);
+                    connection.acceptShootAction(action);
                 }
 
                 if (object instanceof Network.RespawnRequest) {
@@ -75,7 +70,6 @@ class GameServer {
             public void disconnected(Connection c) {
                 int playerId = ((PlayerConnection) c).playerId;
                 removePlayer(playerId);
-                playerIdToConnection.remove(playerId);
             }
         });
     }
@@ -95,28 +89,17 @@ class GameServer {
         playersToRemove.add(playerId);
     }
 
-    private synchronized void bufferMoveAction(int playerId, Network.MovePlayer action) {
-        moveActions.put(playerId, action);
-        moveActionsTTLs.put(playerId, INITIAL_MOVE_ACTION_TTL);
-    }
-
-    private synchronized void bufferShootAction(int playerId, Network.ShootAt action) {
-        shootActions.put(playerId, action);
-    }
-
     private void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         log.info("Starting game loop");
         Runnable runnable = () -> {
             try {
                 synchronized (GameServer.this) {
+                    HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
+                    HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
                     gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions);
                     newPlayers.clear();
                     playersToRemove.clear();
-                    for (Integer playerId : updateMoveActionsTTLs()) {
-                        moveActions.remove(playerId);
-                    }
-                    shootActions.clear();
                 }
                 Network.UpdateModel updateModel = new Network.UpdateModel();
                 updateModel.stateSnapshot = gameModel.getStateSnapshot();
@@ -125,7 +108,8 @@ class GameServer {
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
                 for (Integer playerId : gameModel.getKilledPlayers()) {
-                    server.sendToTCP(playerIdToConnection.get(playerId).getID(), death);
+                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
+                    server.sendToTCP(playerConnection.getID(), death);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -139,19 +123,39 @@ class GameServer {
         );
     }
 
-    private List<Integer> updateMoveActionsTTLs() {
-        Map<Integer, Integer> newMoveActionsTTLs = new HashMap<>();
-        List<Integer> moveActionsToRemove = new ArrayList<>();
-        for (Integer playerId : moveActionsTTLs.keySet()) {
-            Integer ttl = moveActionsTTLs.get(playerId) - 1;
-            if (ttl > 0) {
-                newMoveActionsTTLs.put(playerId, ttl);
-            } else {
-                moveActionsToRemove.add(playerId);
+    private PlayerConnection getPlayerConnectionByPlayerId(Integer playerId) {
+        for (PlayerConnection connection : playerConnections()) {
+            if (connection.playerId == playerId) {
+                return connection;
             }
         }
-        moveActionsTTLs = newMoveActionsTTLs;
-        return moveActionsToRemove;
+        throw new IllegalArgumentException("no player connection for player id: " + playerId);
+    }
+
+    private Collection<PlayerConnection> playerConnections() {
+        return Arrays.stream(server.getConnections())
+                .map(PlayerConnection.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    private HashMap<Integer, Network.MovePlayer> collectMoveActions() {
+        HashMap<Integer, Network.MovePlayer> moveActions = new HashMap<>();
+        for (PlayerConnection connection : playerConnections()) {
+            connection.moveAction().ifPresent(
+                    movePlayer -> moveActions.put(connection.playerId, movePlayer)
+            );
+        }
+        return moveActions;
+    }
+
+    private HashMap<Integer, Network.ShootAt> collectShootActions() {
+        HashMap<Integer, Network.ShootAt> shootActions = new HashMap<>();
+        for (PlayerConnection connection : playerConnections()) {
+            connection.shootAction().ifPresent(
+                    shootAction -> shootActions.put(connection.playerId, shootAction)
+            );
+        }
+        return shootActions;
     }
 
     private void startServing(int port) throws IOException {
@@ -183,15 +187,10 @@ class GameServer {
         GameModel gameModel = GameModel.create(walls);
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
-                return new PlayerConnection();
+                return new PlayerConnection(INITIAL_MOVE_ACTION_TTL);
             }
         };
         return new GameServer(gameModel, server);
-    }
-
-    // This holds per connection state.
-    private static class PlayerConnection extends Connection {
-        int playerId;
     }
 
     public static void main(String[] args) throws IOException {
