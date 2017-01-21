@@ -13,8 +13,8 @@ public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
 
     public static final float TIME_STEP = 1.0f / 60;
-    static final float PLAYER_CIRCLE_RADIUS = 1;
-    static final float BULLET_CIRCLE_RADIUS = 0.2f;
+    public static final float PLAYER_CIRCLE_RADIUS = 1;
+    public static final float BULLET_CIRCLE_RADIUS = 0.2f;
 
     private static final int VELOCITY_ITERATIONS = 8;
     private static final int POSITION_ITERATIONS = 3;

@@ -16,11 +16,11 @@ public class Wall {
         return wall;
     }
 
-    List<Point> getPoints() {
+    public List<Point> getPoints() {
         return points;
     }
 
-    Point getPosition() {
+    public Point getPosition() {
         return position;
     }
 }

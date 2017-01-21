@@ -1,13 +1,17 @@
 package com.tearulez.dudes;
 
 import com.badlogic.gdx.Game;
+import com.tearulez.dudes.graphics.GameScreen;
+import com.tearulez.dudes.graphics.LoadingScreen;
+import com.tearulez.dudes.graphics.RespawnScreen;
+import com.tearulez.dudes.graphics.WorldRenderer;
 
 import java.util.*;
 
 public class DudesGame extends Game {
+    private static final int SCALE_FACTOR = 10;
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
-    private GameScreen gameScreen;
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
 
     DudesGame(GameClient gameClient) {
@@ -25,8 +29,8 @@ public class DudesGame extends Game {
     void onPlayerRespawn(int playerId) {
         addDelayedAction(() -> {
             GameState gameState = () -> stateSnapshot;
-            gameScreen = new GameScreen(playerId, gameClient, gameState);
-            setScreen(gameScreen);
+            WorldRenderer worldRenderer = new WorldRenderer(playerId, gameState, SCALE_FACTOR);
+            setScreen(new GameScreen(gameClient, worldRenderer));
         });
     }
 

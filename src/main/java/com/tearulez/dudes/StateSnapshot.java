@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class StateSnapshot {
+public class StateSnapshot {
     private Map<Integer, Player> players;
     private List<Wall> walls;
     private List<Point> bullets;
@@ -24,15 +24,15 @@ class StateSnapshot {
         return create(Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
     }
 
-    Map<Integer, Player> getPlayers() {
+    public Map<Integer, Player> getPlayers() {
         return players;
     }
 
-    List<Wall> getWalls() {
+    public List<Wall> getWalls() {
         return walls;
     }
 
-    List<Point> getBullets() {
+    public List<Point> getBullets() {
         return bullets;
     }
 }

@@ -1,7 +1,7 @@
 package com.tearulez.dudes;
 
-class Player {
-    static final int MAX_HEALTH = 100;
+public class Player {
+    public static final int MAX_HEALTH = 100;
     private Point position;
     private int health;
 
@@ -15,11 +15,11 @@ class Player {
         return player;
     }
 
-    Point getPosition() {
+    public Point getPosition() {
         return position;
     }
 
-    int getHealth() {
+    public int getHealth() {
         return health;
     }
 }

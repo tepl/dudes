@@ -1,4 +1,4 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.graphics;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -12,7 +12,7 @@ public class RespawnScreen extends ScreenAdapter {
     private final Batch batch = new SpriteBatch();
     private final Runnable callback;
 
-    RespawnScreen(Runnable callback) {
+    public RespawnScreen(Runnable callback) {
         this.callback = callback;
     }
 
