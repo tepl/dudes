@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.tearulez.dudes.GameServer" level="INFO" />
+    <logger name="com.tearulez.dudes.server.GameServer" level="INFO" />
     <logger name="com.tearulez.dudes.GameModel" level="DEBUG" />
 
     <root level="debug">

@@ -1,9 +1,13 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.server;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
+import com.tearulez.dudes.GameModel;
+import com.tearulez.dudes.Network;
+import com.tearulez.dudes.Point;
+import com.tearulez.dudes.Wall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

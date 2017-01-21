@@ -9,10 +9,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class GameModel {
+public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
 
-    static final float TIME_STEP = 1.0f / 60;
+    public static final float TIME_STEP = 1.0f / 60;
     static final float PLAYER_CIRCLE_RADIUS = 1;
     static final float BULLET_CIRCLE_RADIUS = 0.2f;
 
@@ -37,7 +37,7 @@ class GameModel {
         this.world = world;
     }
 
-    static GameModel create(ArrayList<Wall> walls) {
+    public static GameModel create(ArrayList<Wall> walls) {
         World world = new World(new Vector2(0, 0), true);
 
         GameModel gameModel = new GameModel(world);
@@ -75,7 +75,10 @@ class GameModel {
         return playerBodies.containsKey(playerId);
     }
 
-    void nextStep(List<Integer> newPlayers, List<Integer> playersToRemove, Map<Integer, Network.MovePlayer> moveActions, Map<Integer, Network.ShootAt> shootActions) {
+    public void nextStep(List<Integer> newPlayers,
+                         List<Integer> playersToRemove,
+                         Map<Integer, Network.MovePlayer> moveActions,
+                         Map<Integer, Network.ShootAt> shootActions) {
         cleanUp();
         processNewPlayers(newPlayers);
         playersToRemove.forEach(this::removePlayer);
@@ -197,7 +200,7 @@ class GameModel {
         }
     }
 
-    StateSnapshot getStateSnapshot() {
+    public StateSnapshot getStateSnapshot() {
         return StateSnapshot.create(getPlayers(), walls, getBulletPositions());
     }
 
@@ -235,7 +238,7 @@ class GameModel {
         }
     }
 
-    List<Integer> getKilledPlayers() {
+    public List<Integer> getKilledPlayers() {
         return killedPlayers;
     }
 

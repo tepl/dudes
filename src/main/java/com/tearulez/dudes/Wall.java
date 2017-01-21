@@ -2,14 +2,14 @@ package com.tearulez.dudes;
 
 import java.util.List;
 
-class Wall {
+public class Wall {
     private Point position;
     private List<Point> points;
 
     private Wall() {
     }
 
-    static Wall create(Point position, List<Point> points) {
+    public static Wall create(Point position, List<Point> points) {
         Wall wall = new Wall();
         wall.position = position;
         wall.points = points;
