@@ -51,5 +51,6 @@ public class Network {
     }
 
     public static class RespawnRequest {
+        public Point startingPosition;
     }
 }

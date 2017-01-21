@@ -75,7 +75,7 @@ public class GameModel {
         return playerBodies.containsKey(playerId);
     }
 
-    public void nextStep(List<Integer> newPlayers,
+    public void nextStep(Map<Integer, Point> newPlayers,
                          List<Integer> playersToRemove,
                          Map<Integer, Network.MovePlayer> moveActions,
                          Map<Integer, Network.ShootAt> shootActions) {
@@ -93,9 +93,11 @@ public class GameModel {
         killedPlayers.clear();
     }
 
-    private void processNewPlayers(List<Integer> newPlayers) {
-        for (Integer playerId : newPlayers) {
-            Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2());
+    private void processNewPlayers(Map<Integer, Point> newPlayers) {
+        for (Map.Entry<Integer, Point> player : newPlayers.entrySet()) {
+            Integer playerId = player.getKey();
+            Point position = player.getValue();
+            Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2(position.x, position.y));
             body.setUserData(PlayerId.create(playerId));
             playerBodies.put(playerId, body);
             playerHealths.put(playerId, Player.MAX_HEALTH);

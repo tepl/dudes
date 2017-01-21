@@ -75,12 +75,13 @@ class GameClient implements PlayerControls {
         client.sendTCP(shootAt);
     }
 
-    void respawn() {
-        client.sendTCP(new Network.RespawnRequest());
-    }
-
     void closeServerConnection() {
         client.close();
     }
 
+    void respawnAt(Point point) {
+        Network.RespawnRequest respawnRequest = new Network.RespawnRequest();
+        respawnRequest.startingPosition = point;
+        client.sendTCP(respawnRequest);
+    }
 }

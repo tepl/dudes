@@ -17,6 +17,10 @@ public class GameScreen extends ScreenAdapter {
     public GameScreen(PlayerControls playerControls, WorldRenderer worldRenderer) {
         this.playerControls = playerControls;
         this.worldRenderer = worldRenderer;
+    }
+
+    @Override
+    public void show() {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean mouseMoved(int screenX, int screenY) {
