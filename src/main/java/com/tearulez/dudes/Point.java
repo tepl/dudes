@@ -1,7 +1,7 @@
 package com.tearulez.dudes;
 
 public class Point implements Cloneable {
-    float x, y = 0;
+    public float x, y = 0;
 
     private Point() {
     }

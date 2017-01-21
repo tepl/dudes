@@ -25,7 +25,7 @@ class GameServer {
     private final GameModel gameModel;
     private final Server server;
     private int nextPlayerId;
-    private List<Integer> newPlayers = new ArrayList<>();
+    private Map<Integer, Point> newPlayers = new HashMap<>();
     private List<Integer> playersToRemove = new ArrayList<>();
 
     private GameServer(GameModel gameModel, Server server) {
@@ -60,7 +60,8 @@ class GameServer {
                 }
 
                 if (object instanceof Network.RespawnRequest) {
-                    addPlayer(connection.playerId);
+                    Network.RespawnRequest action = (Network.RespawnRequest) object;
+                    addPlayer(connection.playerId, action.startingPosition);
                     Network.Respawned respawned = new Network.Respawned();
                     respawned.id = connection.playerId;
                     server.sendToTCP(c.getID(), respawned);
@@ -77,12 +78,12 @@ class GameServer {
     private synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
-        addPlayer(playerId);
+        addPlayer(playerId, Point.create(0, 0));
         return playerId;
     }
 
-    private synchronized void addPlayer(int playerId) {
-        newPlayers.add(playerId);
+    private synchronized void addPlayer(int playerId, Point startingPosition) {
+        newPlayers.put(playerId, startingPosition);
     }
 
     private synchronized void removePlayer(int playerId) {

@@ -1,14 +1,16 @@
 package com.tearulez.dudes;
 
 import com.badlogic.gdx.Game;
+import com.tearulez.dudes.graphics.*;
 
 import java.util.*;
 
 public class DudesGame extends Game {
+    private static final int SCALE_FACTOR = 10;
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
-    private GameScreen gameScreen;
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
+    private WorldRenderer worldRenderer = null;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -25,17 +27,23 @@ public class DudesGame extends Game {
     void onPlayerRespawn(int playerId) {
         addDelayedAction(() -> {
             GameState gameState = () -> stateSnapshot;
-            gameScreen = new GameScreen(playerId, gameClient, gameState);
-            setScreen(gameScreen);
+            worldRenderer = new WorldRenderer(playerId, gameState, SCALE_FACTOR);
+            setScreen(new GameScreen(gameClient, worldRenderer));
         });
     }
 
     void onPlayerDeath() {
-        addDelayedAction(() -> setScreen(new RespawnScreen(this::respawn)));
+        addDelayedAction(() -> setScreen(
+                new DeathScreen(() -> setScreen(respawnScreen()))
+        ));
     }
 
-    private void respawn() {
-        gameClient.respawn();
+    private RespawnScreen respawnScreen() {
+        return new RespawnScreen(worldRenderer, this::respawn);
+    }
+
+    private void respawn(Point point) {
+        gameClient.respawnAt(point);
         setScreen(new LoadingScreen("Respawning"));
     }
 

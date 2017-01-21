@@ -1,4 +1,4 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.graphics;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -7,12 +7,12 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class RespawnScreen extends ScreenAdapter {
+public class DeathScreen extends ScreenAdapter {
     private final BitmapFont font = new BitmapFont();
     private final Batch batch = new SpriteBatch();
     private final Runnable callback;
 
-    RespawnScreen(Runnable callback) {
+    public DeathScreen(Runnable callback) {
         this.callback = callback;
     }
 
@@ -22,7 +22,7 @@ public class RespawnScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        font.draw(batch, "Click to respawn", 100, 150);
+        font.draw(batch, "You are dead, dude. Click to continue.", 100, 150);
         batch.end();
 
         if (Gdx.input.isTouched()) {

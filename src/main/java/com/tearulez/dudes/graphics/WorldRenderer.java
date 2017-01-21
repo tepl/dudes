@@ -1,84 +1,50 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.graphics;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.tearulez.dudes.*;
 
 import java.util.List;
 import java.util.Map;
 
-class GameScreen extends ScreenAdapter {
+public class WorldRenderer {
     private final int playerId;
-    private final PlayerControls playerControls;
-    private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private int width = 0;
-    private int height = 0;
-    private int mouseX;
-    private int mouseY;
-    private final int scaleFactor;
     private final GameState state;
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private final int scaleFactor;
+    private int width;
+    private int height;
 
-    GameScreen(int playerId, PlayerControls playerControls, GameState state) {
+    public WorldRenderer(int playerId, GameState state, int scaleFactor) {
         this.playerId = playerId;
-        this.playerControls = playerControls;
         this.state = state;
-        scaleFactor = 10;
-        Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean mouseMoved(int screenX, int screenY) {
-                mouseX = screenX;
-                mouseY = screenY;
-                return true;
-            }
-
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                float x = (screenX - width / 2) / scaleFactor;
-                float y = -(screenY - height / 2) / scaleFactor;
-                playerControls.shootAt(x, y);
-                return true;
-            }
-        });
-        System.out.println("Game Client is initialized");
+        this.scaleFactor = scaleFactor;
     }
 
-    @Override
-    public void resize(int width, int height) {
+    void resize(int width, int height) {
         this.width = width;
         this.height = height;
     }
 
-    @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        int dx = 0;
-        int dy = 0;
-        if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
-        if (isOneOfKeysPressed(Input.Keys.RIGHT, Input.Keys.D)) dx += 1;
-        if (isOneOfKeysPressed(Input.Keys.UP, Input.Keys.W)) dy += 1;
-        if (isOneOfKeysPressed(Input.Keys.DOWN, Input.Keys.S)) dy -= 1;
-        if (dx != 0 || dy != 0) {
-            playerControls.movePlayer(dx, dy);
-        }
-
+    void render() {
+        renderBackground();
         StateSnapshot stateSnapshot = state.snapshot();
-
         renderWalls(stateSnapshot.getWalls());
         renderPlayers(stateSnapshot.getPlayers());
         renderBullets(stateSnapshot.getBullets());
-        renderCrosshairs();
     }
 
-    private boolean isOneOfKeysPressed(int... keys) {
-        for (int key : keys) {
-            if (Gdx.input.isKeyPressed(key)) {
-                return true;
-            }
-        }
-        return false;
+    Point convertScreenToWorld(int screenX, int screenY) {
+        float x = (screenX - width / 2) / scaleFactor;
+        float y = (screenY - height / 2) / scaleFactor;
+        return Point.create(x, y);
+    }
+
+    private void renderBackground() {
+        Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
     }
 
     private void renderBullets(List<Point> bullets) {
@@ -132,15 +98,6 @@ class GameScreen extends ScreenAdapter {
             }
             shapeRenderer.polygon(vertices);
         }
-        shapeRenderer.end();
-    }
-
-    private void renderCrosshairs() {
-        int crosshairsSize = 4;
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.BLACK);
-        shapeRenderer.line(mouseX - crosshairsSize, height - mouseY, mouseX + crosshairsSize, height - mouseY);
-        shapeRenderer.line(mouseX, height - mouseY - crosshairsSize, mouseX, height - mouseY + crosshairsSize);
         shapeRenderer.end();
     }
 }
