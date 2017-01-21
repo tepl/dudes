@@ -6,12 +6,12 @@ import com.esotericsoftware.kryonet.EndPoint;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-class Network {
-    static final int MAX_OBJECT_SIZE = 102400;
-    static final int WRITE_BUFFER_SIZE = MAX_OBJECT_SIZE * 5;
+public class Network {
+    public static final int MAX_OBJECT_SIZE = 102400;
+    public static final int WRITE_BUFFER_SIZE = MAX_OBJECT_SIZE * 5;
 
     // This registers objects that are going to be sent over the network.
-    static void register(EndPoint endPoint) {
+    public static void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
         kryo.register(Login.class);
         kryo.register(Respawned.class);
@@ -28,28 +28,28 @@ class Network {
         kryo.register(RespawnRequest.class);
     }
 
-    static class Login {
+    public static class Login {
     }
 
-    static class Respawned {
-        int id;
+    public static class Respawned {
+        public int id;
     }
 
-    static class UpdateModel {
-        StateSnapshot stateSnapshot;
+    public static class UpdateModel {
+        public StateSnapshot stateSnapshot;
     }
 
-    static class MovePlayer {
+    public static class MovePlayer {
         float dx, dy;
     }
 
-    static class ShootAt {
+    public static class ShootAt {
         float x, y;
     }
 
-    static class PlayerDeath {
+    public static class PlayerDeath {
     }
 
-    static class RespawnRequest {
+    public static class RespawnRequest {
     }
 }
