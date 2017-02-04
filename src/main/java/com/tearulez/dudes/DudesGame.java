@@ -9,6 +9,7 @@ import java.util.*;
 
 public class DudesGame extends Game {
     private static final int SCALE_FACTOR = 10;
+    private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
@@ -42,7 +43,7 @@ public class DudesGame extends Game {
     }
 
     void onShot() {
-        addDelayedAction(() -> shotSound.play());
+        addDelayedAction(() -> shotSound.play(Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))));
     }
 
     private RespawnScreen respawnScreen() {
