@@ -34,6 +34,13 @@ public class GameScreen extends ScreenAdapter {
             }
 
             @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+                mouseX = screenX;
+                mouseY = screenY;
+                return true;
+            }
+
+            @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 Point target = worldRenderer.convertScreenToWorld(screenX, screenY);
                 playerControls.shootAt(target.x, target.y);
