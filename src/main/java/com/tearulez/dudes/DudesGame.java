@@ -1,6 +1,8 @@
 package com.tearulez.dudes;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.tearulez.dudes.graphics.*;
 
 import java.util.*;
@@ -11,6 +13,7 @@ public class DudesGame extends Game {
     private List<Runnable> delayedActions = new ArrayList<>();
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
     private WorldRenderer worldRenderer = null;
+    private Sound shotSound = null;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -38,6 +41,10 @@ public class DudesGame extends Game {
         ));
     }
 
+    void onShot() {
+        addDelayedAction(() -> shotSound.play());
+    }
+
     private RespawnScreen respawnScreen() {
         return new RespawnScreen(worldRenderer, this::respawn);
     }
@@ -50,6 +57,7 @@ public class DudesGame extends Game {
     @Override
     public void create() {
         gameClient.init(this);
+        shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
         setScreen(new LoadingScreen("Connecting"));
     }
 
@@ -62,4 +70,9 @@ public class DudesGame extends Game {
         super.render();
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        shotSound.dispose();
+    }
 }

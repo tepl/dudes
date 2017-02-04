@@ -47,6 +47,11 @@ class GameClient implements PlayerControls {
                 if (object instanceof Network.PlayerDeath) {
                     game.onPlayerDeath();
                 }
+
+                // Shot event
+                if (object instanceof Network.ShotEvent) {
+                    game.onShot();
+                }
             }
 
             public void disconnected(Connection connection) {
