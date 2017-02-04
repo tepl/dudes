@@ -3,6 +3,7 @@ package com.tearulez.dudes.graphics;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.tearulez.dudes.*;
 
@@ -14,6 +15,7 @@ public class WorldRenderer {
     private final GameState state;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final float scaleFactor;
+    private OrthographicCamera cam = new OrthographicCamera();
     private int width;
     private int height;
 
@@ -26,6 +28,13 @@ public class WorldRenderer {
     void resize(int width, int height) {
         this.width = width;
         this.height = height;
+
+        cam.viewportWidth = width;
+        cam.viewportHeight = height;
+        cam.position.set(cam.viewportWidth / 2f, cam.viewportHeight / 2f, 0);
+        cam.update();
+
+        shapeRenderer.setProjectionMatrix(cam.combined);
     }
 
     void render() {
