@@ -8,7 +8,7 @@ import com.tearulez.dudes.graphics.*;
 import java.util.*;
 
 public class DudesGame extends Game {
-    private static final int SCALE_FACTOR = 10;
+    private static final float SCALE_FACTOR = 10;
     private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();

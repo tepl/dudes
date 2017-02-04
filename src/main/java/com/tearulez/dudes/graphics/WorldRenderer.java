@@ -13,11 +13,11 @@ public class WorldRenderer {
     private final int playerId;
     private final GameState state;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final int scaleFactor;
+    private final float scaleFactor;
     private int width;
     private int height;
 
-    public WorldRenderer(int playerId, GameState state, int scaleFactor) {
+    public WorldRenderer(int playerId, GameState state, float scaleFactor) {
         this.playerId = playerId;
         this.state = state;
         this.scaleFactor = scaleFactor;
