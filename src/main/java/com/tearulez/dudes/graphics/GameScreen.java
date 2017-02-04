@@ -2,15 +2,19 @@ package com.tearulez.dudes.graphics;
 
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector3;
 import com.tearulez.dudes.*;
 
 
 public class GameScreen extends ScreenAdapter {
+    private static final float VIEWPORT_HEIGHT = 1;
+    private static final float CROSSHAIR_SIZE = 0.02f;
     private final PlayerControls playerControls;
     private final WorldRenderer worldRenderer;
-    private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private int height = 0;
+    private final OrthographicCamera cam = new OrthographicCamera();
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private int mouseX;
     private int mouseY;
 
@@ -31,8 +35,7 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                int fixedScreenY = height - screenY;
-                Point target = worldRenderer.convertScreenToWorld(screenX, fixedScreenY);
+                Point target = worldRenderer.convertScreenToWorld(screenX, screenY);
                 playerControls.shootAt(target.x, target.y);
                 return true;
             }
@@ -40,13 +43,21 @@ public class GameScreen extends ScreenAdapter {
     }
 
     @Override
+    public void hide() {
+        Gdx.input.setInputProcessor(null);
+    }
+
+    @Override
     public void resize(int width, int height) {
-        this.height = height;
         worldRenderer.resize(width, height);
+        cam.viewportWidth = VIEWPORT_HEIGHT * width / height;
+        cam.viewportHeight = VIEWPORT_HEIGHT;
+        cam.update();
     }
 
     @Override
     public void render(float delta) {
+        if (isOneOfKeysPressed(Input.Keys.ESCAPE)) System.exit(0);
         int dx = 0;
         int dy = 0;
         if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
@@ -70,12 +81,12 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void renderCrosshairs() {
-        int crosshairsSize = 4;
+        Vector3 p = cam.unproject(new Vector3(mouseX, mouseY, 0));
+        shapeRenderer.setProjectionMatrix(cam.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.BLACK);
-        int fixedY = height - mouseY;
-        shapeRenderer.line(mouseX - crosshairsSize, fixedY, mouseX + crosshairsSize, fixedY);
-        shapeRenderer.line(mouseX, height - mouseY - crosshairsSize, mouseX, fixedY + crosshairsSize);
+        shapeRenderer.line(p.x - CROSSHAIR_SIZE, p.y, p.x + CROSSHAIR_SIZE, p.y);
+        shapeRenderer.line(p.x, p.y - CROSSHAIR_SIZE, p.x, p.y + CROSSHAIR_SIZE);
         shapeRenderer.end();
     }
 }

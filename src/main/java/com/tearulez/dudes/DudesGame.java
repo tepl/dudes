@@ -4,11 +4,11 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.tearulez.dudes.graphics.*;
+import org.lwjgl.input.Mouse;
 
 import java.util.*;
 
 public class DudesGame extends Game {
-    private static final float SCALE_FACTOR = 10;
     private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
@@ -31,7 +31,7 @@ public class DudesGame extends Game {
     void onPlayerRespawn(int playerId) {
         addDelayedAction(() -> {
             GameState gameState = () -> stateSnapshot;
-            worldRenderer = new WorldRenderer(playerId, gameState, SCALE_FACTOR);
+            worldRenderer = new WorldRenderer(playerId, gameState);
             setScreen(new GameScreen(gameClient, worldRenderer));
         });
     }
@@ -57,6 +57,8 @@ public class DudesGame extends Game {
 
     @Override
     public void create() {
+        Gdx.input.setCursorCatched(true);
+        Mouse.setClipMouseCoordinatesToWindow(true);
         gameClient.init(this);
         shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
         setScreen(new LoadingScreen("Connecting"));

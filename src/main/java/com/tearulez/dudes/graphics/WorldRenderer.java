@@ -5,50 +5,51 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector3;
 import com.tearulez.dudes.*;
 
 import java.util.List;
 import java.util.Map;
 
 public class WorldRenderer {
+    private static final float VIEWPORT_HEIGHT = 50;
+    private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final int playerId;
     private final GameState state;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final float scaleFactor;
     private OrthographicCamera cam = new OrthographicCamera();
-    private int width;
-    private int height;
 
-    public WorldRenderer(int playerId, GameState state, float scaleFactor) {
+    public WorldRenderer(int playerId, GameState state) {
         this.playerId = playerId;
         this.state = state;
-        this.scaleFactor = scaleFactor;
     }
 
     void resize(int width, int height) {
-        this.width = width;
-        this.height = height;
-
-        cam.viewportWidth = width;
-        cam.viewportHeight = height;
-        cam.position.set(cam.viewportWidth / 2f, cam.viewportHeight / 2f, 0);
+        cam.viewportWidth = VIEWPORT_HEIGHT * width / height;
+        cam.viewportHeight = VIEWPORT_HEIGHT;
         cam.update();
-
-        shapeRenderer.setProjectionMatrix(cam.combined);
     }
 
     void render() {
-        renderBackground();
         StateSnapshot stateSnapshot = state.snapshot();
+        if (stateSnapshot.getPlayers().containsKey(playerId)) {
+            Point playerPosition = stateSnapshot.getPlayers().get(playerId).getPosition();
+            cam.position.set(playerPosition.x, playerPosition.y, 0);
+        } else {
+            cam.position.set(0, 0, 0);
+        }
+        cam.update();
+        shapeRenderer.setProjectionMatrix(cam.combined);
+
+        renderBackground();
         renderWalls(stateSnapshot.getWalls());
         renderPlayers(stateSnapshot.getPlayers());
         renderBullets(stateSnapshot.getBullets());
     }
 
     Point convertScreenToWorld(int screenX, int screenY) {
-        float x = (screenX - width / 2) / scaleFactor;
-        float y = (screenY - height / 2) / scaleFactor;
-        return Point.create(x, y);
+        Vector3 p = cam.unproject(new Vector3(screenX, screenY, 0));
+        return Point.create(p.x, p.y);
     }
 
     private void renderBackground() {
@@ -60,11 +61,7 @@ public class WorldRenderer {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Point bullet : bullets) {
             shapeRenderer.setColor(Color.BLACK);
-            shapeRenderer.circle(
-                    width / 2 + bullet.x * scaleFactor,
-                    height / 2 + bullet.y * scaleFactor,
-                    GameModel.BULLET_CIRCLE_RADIUS * scaleFactor
-            );
+            shapeRenderer.circle(bullet.x, bullet.y, GameModel.BULLET_CIRCLE_RADIUS, NUMBER_OF_CIRCLE_SEGMENTS);
         }
         shapeRenderer.end();
     }
@@ -76,9 +73,6 @@ public class WorldRenderer {
             Player player = positionEntry.getValue();
             Point position = player.getPosition();
 
-            float screenX = width / 2 + position.x * scaleFactor;
-            float screenY = height / 2 + position.y * scaleFactor;
-            float radius = GameModel.PLAYER_CIRCLE_RADIUS * scaleFactor;
             float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
 
             if (characterId == playerId) {
@@ -86,9 +80,9 @@ public class WorldRenderer {
             } else {
                 shapeRenderer.setColor(Color.RED);
             }
-            shapeRenderer.circle(screenX, screenY, radius);
+            shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS, NUMBER_OF_CIRCLE_SEGMENTS);
             shapeRenderer.setColor(Color.BLACK);
-            shapeRenderer.circle(screenX, screenY, radius * healthFactor);
+            shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS * healthFactor, NUMBER_OF_CIRCLE_SEGMENTS);
         }
         shapeRenderer.end();
     }
@@ -102,8 +96,8 @@ public class WorldRenderer {
             float[] vertices = new float[size * 2];
             for (int i = 0; i < size; i++) {
                 Point point = wall.getPoints().get(i);
-                vertices[i * 2] = width / 2 + (position.x + point.x) * scaleFactor;
-                vertices[i * 2 + 1] = height / 2 + (position.y + point.y) * scaleFactor;
+                vertices[i * 2] = position.x + point.x;
+                vertices[i * 2 + 1] = position.y + point.y;
             }
             shapeRenderer.polygon(vertices);
         }
