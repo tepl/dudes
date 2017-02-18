@@ -1,4 +1,6 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.model;
+
+import com.tearulez.dudes.Point;
 
 import java.util.List;
 

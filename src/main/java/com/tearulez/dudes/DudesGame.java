@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.tearulez.dudes.graphics.*;
+import com.tearulez.dudes.model.StateSnapshot;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;

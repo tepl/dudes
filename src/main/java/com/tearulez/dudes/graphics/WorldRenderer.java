@@ -7,6 +7,10 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.tearulez.dudes.*;
+import com.tearulez.dudes.model.GameModel;
+import com.tearulez.dudes.model.Player;
+import com.tearulez.dudes.model.StateSnapshot;
+import com.tearulez.dudes.model.Wall;
 
 import java.util.List;
 import java.util.Map;

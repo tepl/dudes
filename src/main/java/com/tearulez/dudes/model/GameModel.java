@@ -1,7 +1,8 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.model;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.tearulez.dudes.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

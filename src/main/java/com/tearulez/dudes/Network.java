@@ -2,6 +2,9 @@ package com.tearulez.dudes;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
+import com.tearulez.dudes.model.Player;
+import com.tearulez.dudes.model.StateSnapshot;
+import com.tearulez.dudes.model.Wall;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,11 +44,11 @@ public class Network {
     }
 
     public static class MovePlayer {
-        float dx, dy;
+        public float dx, dy;
     }
 
     public static class ShootAt {
-        float x, y;
+        public float x, y;
     }
 
     public static class PlayerDeath {

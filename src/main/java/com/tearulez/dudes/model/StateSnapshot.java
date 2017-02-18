@@ -1,4 +1,6 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.model;
+
+import com.tearulez.dudes.Point;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +22,7 @@ public class StateSnapshot {
         return state;
     }
 
-    static StateSnapshot empty() {
+    public static StateSnapshot empty() {
         return create(Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
     }
 

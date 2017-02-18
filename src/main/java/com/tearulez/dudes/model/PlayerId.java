@@ -1,4 +1,4 @@
-package com.tearulez.dudes;
+package com.tearulez.dudes.model;
 
 class PlayerId {
     private int id;
