@@ -34,8 +34,7 @@ class GameClient implements PlayerControls {
             public void received(Connection connection, Object object) {
                 // Player registered
                 if (object instanceof Network.Respawned) {
-                    Network.Respawned respawned = (Network.Respawned) object;
-                    game.onPlayerRespawn(respawned.id);
+                    game.onPlayerRespawn();
                 }
 
                 // Update received

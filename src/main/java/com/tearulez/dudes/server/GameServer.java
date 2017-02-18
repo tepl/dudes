@@ -7,6 +7,8 @@ import com.esotericsoftware.minlog.Log;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.Network;
 import com.tearulez.dudes.Point;
+import com.tearulez.dudes.StateSnapshot;
+import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +45,7 @@ class GameServer {
 
                 if (object instanceof Network.Login) {
                     Network.Respawned respawned = new Network.Respawned();
-                    int newPlayerId = registerNewPlayer();
-                    respawned.id = newPlayerId;
-                    connection.playerId = newPlayerId;
+                    connection.playerId = registerNewPlayer();
                     server.sendToTCP(c.getID(), respawned);
                 }
 
@@ -63,7 +63,6 @@ class GameServer {
                     Network.RespawnRequest action = (Network.RespawnRequest) object;
                     addPlayer(connection.playerId, action.startingPosition);
                     Network.Respawned respawned = new Network.Respawned();
-                    respawned.id = connection.playerId;
                     server.sendToTCP(c.getID(), respawned);
                 }
             }
@@ -102,10 +101,12 @@ class GameServer {
                     newPlayers.clear();
                     playersToRemove.clear();
                 }
-                Network.UpdateModel updateModel = new Network.UpdateModel();
-                updateModel.stateSnapshot = gameModel.getStateSnapshot();
                 log.debug("sending updated model to clients");
-                server.sendToAllTCP(updateModel);
+
+                Map<Integer, Player> players = gameModel.getPlayers();
+                ArrayList<Wall> walls = gameModel.getWalls();
+                List<Point> bulletPositions = gameModel.getBulletPositions();
+                sendStateSnapshots(players, walls, bulletPositions);
 
                 if (gameModel.wasShotSound()) {
                     server.sendToAllTCP(new Network.ShotEvent());
@@ -126,6 +127,26 @@ class GameServer {
                 (int) (GameModel.TIME_STEP * 1000),
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    private void sendStateSnapshots(Map<Integer, Player> players,
+                                    ArrayList<Wall> walls,
+                                    List<Point> bulletPositions) {
+        for (PlayerConnection connection : playerConnections()) {
+            Optional<Player> player = Optional.ofNullable(players.get(connection.playerId));
+            List<Player> otherPlayers = players.entrySet().stream()
+                    .filter(entry -> entry.getKey() != connection.playerId)
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toList());
+            Network.UpdateModel updateModel = new Network.UpdateModel();
+            updateModel.stateSnapshot = StateSnapshot.create(
+                    player,
+                    otherPlayers,
+                    walls,
+                    bulletPositions
+            );
+            server.sendToTCP(connection.getID(), updateModel);
+        }
     }
 
     private PlayerConnection getPlayerConnectionByPlayerId(Integer playerId) {

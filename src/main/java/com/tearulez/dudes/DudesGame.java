@@ -4,7 +4,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.tearulez.dudes.graphics.*;
-import com.tearulez.dudes.model.StateSnapshot;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
@@ -29,12 +28,8 @@ public class DudesGame extends Game {
         addDelayedAction(() -> this.stateSnapshot = stateSnapshot);
     }
 
-    void onPlayerRespawn(int playerId) {
-        addDelayedAction(() -> {
-            GameState gameState = () -> stateSnapshot;
-            worldRenderer = new WorldRenderer(playerId, gameState);
-            setScreen(new GameScreen(gameClient, worldRenderer));
-        });
+    void onPlayerRespawn() {
+        addDelayedAction(() -> setScreen(new GameScreen(gameClient, worldRenderer)));
     }
 
     void onPlayerDeath() {
@@ -60,6 +55,7 @@ public class DudesGame extends Game {
     public void create() {
         Gdx.input.setCursorCatched(true);
         Mouse.setClipMouseCoordinatesToWindow(true);
+        worldRenderer = new WorldRenderer(() -> stateSnapshot);
         gameClient.init(this);
         shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
         setScreen(new LoadingScreen("Connecting"));

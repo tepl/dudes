@@ -3,7 +3,6 @@ package com.tearulez.dudes;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.EndPoint;
 import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.model.StateSnapshot;
 import com.tearulez.dudes.model.Wall;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ public class Network {
     }
 
     public static class Respawned {
-        public int id;
     }
 
     public static class UpdateModel {

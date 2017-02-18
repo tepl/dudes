@@ -106,6 +106,7 @@ public class GameModel {
                 playerHealths.put(playerId, health);
             }
         });
+        collisions.clear();
     }
 
     private void cleanUp() {
@@ -207,11 +208,7 @@ public class GameModel {
         }
     }
 
-    public StateSnapshot getStateSnapshot() {
-        return StateSnapshot.create(getPlayers(), walls, getBulletPositions());
-    }
-
-    private Map<Integer, Player> getPlayers() {
+    public Map<Integer, Player> getPlayers() {
         Map<Integer, Player> players = new HashMap<>();
         for (Map.Entry<Integer, Body> entry : playerBodies.entrySet()) {
             int playerId = entry.getKey();
@@ -223,7 +220,11 @@ public class GameModel {
         return players;
     }
 
-    private List<Point> getBulletPositions() {
+    public ArrayList<Wall> getWalls() {
+        return walls;
+    }
+
+    public List<Point> getBulletPositions() {
         Stream<Point> bullets = bulletBodies.stream().map(
                 (bullet) -> {
                     Vector2 center = bullet.getPosition();

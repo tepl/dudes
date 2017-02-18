@@ -9,22 +9,20 @@ import com.badlogic.gdx.math.Vector3;
 import com.tearulez.dudes.*;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.model.StateSnapshot;
+import com.tearulez.dudes.StateSnapshot;
 import com.tearulez.dudes.model.Wall;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 public class WorldRenderer {
     private static final float VIEWPORT_HEIGHT = 50;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
-    private final int playerId;
     private final GameState state;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private OrthographicCamera cam = new OrthographicCamera();
 
-    public WorldRenderer(int playerId, GameState state) {
-        this.playerId = playerId;
+    public WorldRenderer(GameState state) {
         this.state = state;
     }
 
@@ -36,8 +34,8 @@ public class WorldRenderer {
 
     void render() {
         StateSnapshot stateSnapshot = state.snapshot();
-        if (stateSnapshot.getPlayers().containsKey(playerId)) {
-            Point playerPosition = stateSnapshot.getPlayers().get(playerId).getPosition();
+        if (stateSnapshot.getPlayer().isPresent()) {
+            Point playerPosition = stateSnapshot.getPlayer().get().getPosition();
             cam.position.set(playerPosition.x, playerPosition.y, 0);
         } else {
             cam.position.set(0, 0, 0);
@@ -47,7 +45,7 @@ public class WorldRenderer {
 
         renderBackground();
         renderWalls(stateSnapshot.getWalls());
-        renderPlayers(stateSnapshot.getPlayers());
+        renderPlayers(stateSnapshot.getPlayer(), stateSnapshot.getOtherPlayers());
         renderBullets(stateSnapshot.getBullets());
     }
 
@@ -70,25 +68,24 @@ public class WorldRenderer {
         shapeRenderer.end();
     }
 
-    private void renderPlayers(Map<Integer, Player> players) {
+    private void renderPlayers(Optional<Player> playerOpt, List<Player> otherPlayers) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        for (Map.Entry<Integer, Player> positionEntry : players.entrySet()) {
-            int characterId = positionEntry.getKey();
-            Player player = positionEntry.getValue();
-            Point position = player.getPosition();
-
-            float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
-
-            if (characterId == playerId) {
-                shapeRenderer.setColor(Color.GREEN);
-            } else {
-                shapeRenderer.setColor(Color.RED);
-            }
-            shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS, NUMBER_OF_CIRCLE_SEGMENTS);
-            shapeRenderer.setColor(Color.BLACK);
-            shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS * healthFactor, NUMBER_OF_CIRCLE_SEGMENTS);
+        for (Player otherPlayer : otherPlayers) {
+            renderPlayer(otherPlayer, Color.RED);
         }
+        playerOpt.ifPresent(player -> renderPlayer(player, Color.GREEN));
         shapeRenderer.end();
+    }
+
+    private void renderPlayer(Player player, Color color) {
+        Point position = player.getPosition();
+
+        float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
+
+        shapeRenderer.setColor(color);
+        shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS, NUMBER_OF_CIRCLE_SEGMENTS);
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.circle(position.x, position.y, GameModel.PLAYER_CIRCLE_RADIUS * healthFactor, NUMBER_OF_CIRCLE_SEGMENTS);
     }
 
     private void renderWalls(List<Wall> walls) {
