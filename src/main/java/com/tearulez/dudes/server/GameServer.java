@@ -119,6 +119,7 @@ class GameServer {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                System.exit(-1);
             }
         };
         scheduler.scheduleAtFixedRate(
