@@ -28,5 +28,5 @@ task pack(type: Copy) {
 
 task deploy(type:Exec) {
     dependsOn pack
-    commandLine 'rsync', '-rv', "$buildDir/output/lib", 'dudes@docean:lib'
+    commandLine 'rsync', '-rv', "$buildDir/output/lib/", 'dudes@docean:lib/'
 }
