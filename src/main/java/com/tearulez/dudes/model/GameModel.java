@@ -31,8 +31,8 @@ public class GameModel {
 
     private World world;
     private ArrayList<Wall> walls = new ArrayList<>();
-    private List<Body> bodiesToDestroy = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
+    private List<PlayerBulletCollision> collisions = new ArrayList<>();
 
     private GameModel(World world) {
         this.world = world;
@@ -86,8 +86,26 @@ public class GameModel {
         processMoveActions(moveActions);
         processShootActions(shootActions);
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-        processPendingDestructions();
+        handlePlayerBulletCollisions();
         step++;
+    }
+
+    private void handlePlayerBulletCollisions() {
+        Map<Integer, List<PlayerBulletCollision>> collisionByPlayerId =
+                collisions.stream()
+                        .collect(Collectors.groupingBy(collision -> collision.playerId));
+        collisionByPlayerId.forEach((playerId, collisions) -> {
+            double sum = collisions.stream()
+                    .mapToDouble(c -> c.squaredRelativeVelocity)
+                    .sum();
+            int health = playerHealths.get(playerId) - (int) sum / 10;
+            if (health < 0) {
+                removePlayer(playerId);
+                killedPlayers.add(playerId);
+            } else {
+                playerHealths.put(playerId, health);
+            }
+        });
     }
 
     private void cleanUp() {
@@ -110,7 +128,7 @@ public class GameModel {
             return;
         }
         Body body = playerBodies.get(playerId);
-        defferDestruction(body);
+        world.destroyBody(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
     }
@@ -129,17 +147,6 @@ public class GameModel {
 
         shape.dispose();
         return body;
-    }
-
-    private void defferDestruction(Body body) {
-        bodiesToDestroy.add(body);
-    }
-
-    private void processPendingDestructions() {
-        for (Body body : bodiesToDestroy) {
-            world.destroyBody(body);
-        }
-        bodiesToDestroy.clear();
     }
 
     private int step;
@@ -229,16 +236,10 @@ public class GameModel {
         return bullets.collect(Collectors.toList());
     }
 
-    private void processHit(Body playerBody, Body bulletBody) {
+    private void queueCollisionEvent(Body playerBody, Body bulletBody) {
         int playerId = ((PlayerId) playerBody.getUserData()).getPlayerId();
-        Vector2 velocity = playerBody.getLinearVelocity().cpy().sub(bulletBody.getLinearVelocity());
-        int health = playerHealths.get(playerId) - (int) velocity.len2() / 10;
-        if (health < 0) {
-            removePlayer(playerId);
-            killedPlayers.add(playerId);
-        } else {
-            playerHealths.put(playerId, health);
-        }
+        Vector2 relativeVelocity = playerBody.getLinearVelocity().cpy().sub(bulletBody.getLinearVelocity());
+        collisions.add(new PlayerBulletCollision(playerId, relativeVelocity.len2()));
     }
 
     public List<Integer> getKilledPlayers() {
@@ -252,9 +253,9 @@ public class GameModel {
             Body bodyB = contact.getFixtureB().getBody();
 
             if (bodyA.getUserData() instanceof PlayerId && bodyB.getUserData() instanceof Bullet) {
-                processHit(bodyA, bodyB);
+                queueCollisionEvent(bodyA, bodyB);
             } else if (bodyB.getUserData() instanceof PlayerId && bodyA.getUserData() instanceof Bullet) {
-                processHit(bodyB, bodyA);
+                queueCollisionEvent(bodyB, bodyA);
             }
         }
 
@@ -274,4 +275,13 @@ public class GameModel {
         }
     }
 
+    private class PlayerBulletCollision {
+        final int playerId;
+        final float squaredRelativeVelocity;
+
+        PlayerBulletCollision(int playerId, float squaredRelativeVelocity) {
+            this.playerId = playerId;
+            this.squaredRelativeVelocity = squaredRelativeVelocity;
+        }
+    }
 }
