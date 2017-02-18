@@ -57,7 +57,6 @@ class GameServer {
                 if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
                     connection.acceptShootAction(action);
-                    server.sendToAllTCP(new Network.ShotEvent());
                 }
 
                 if (object instanceof Network.RespawnRequest) {
@@ -107,6 +106,10 @@ class GameServer {
                 updateModel.stateSnapshot = gameModel.getStateSnapshot();
                 log.debug("sending updated model to clients");
                 server.sendToAllTCP(updateModel);
+
+                if (gameModel.wasShotSound()) {
+                    server.sendToAllTCP(new Network.ShotEvent());
+                }
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
                 for (Integer playerId : gameModel.getKilledPlayers()) {

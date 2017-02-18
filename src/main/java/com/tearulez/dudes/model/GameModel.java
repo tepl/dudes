@@ -33,6 +33,7 @@ public class GameModel {
     private ArrayList<Wall> walls = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
+    private boolean wasShot = false;
 
     private GameModel(World world) {
         this.world = world;
@@ -87,7 +88,6 @@ public class GameModel {
         processShootActions(shootActions);
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         handlePlayerBulletCollisions();
-        step++;
     }
 
     private void handlePlayerBulletCollisions() {
@@ -110,6 +110,7 @@ public class GameModel {
 
     private void cleanUp() {
         killedPlayers.clear();
+        wasShot = false;
     }
 
     private void processNewPlayers(Map<Integer, Point> newPlayers) {
@@ -149,9 +150,6 @@ public class GameModel {
         return body;
     }
 
-    private int step;
-    private int numActions;
-
     private void processMoveActions(Map<Integer, Network.MovePlayer> moveActions) {
         for (Integer playerId : getPlayerIds()) {
             Network.MovePlayer move = moveActions.get(playerId);
@@ -171,13 +169,7 @@ public class GameModel {
                     }
                 }
                 body.applyForceToCenter(force, true);
-                numActions++;
             }
-        }
-        if (step == 60) {
-            log.info("Number of actions: " + numActions);
-            step = 0;
-            numActions = 0;
         }
     }
 
@@ -196,7 +188,11 @@ public class GameModel {
             Body body = playerBodies.get(playerId);
 
             Vector2 playerPosition = body.getPosition();
-            Vector2 aim = target.cpy().sub(playerPosition).nor();
+            Vector2 aim = target.cpy().sub(playerPosition);
+            if (aim.len() < PLAYER_CIRCLE_RADIUS) {
+                continue;
+            }
+            aim.nor();
             // the offset is needed to eliminate bullet-shooter collision
             Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
             Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
@@ -207,6 +203,7 @@ public class GameModel {
             if (bulletBodies.size() > MAX_BULLET_COUNT) {
                 world.destroyBody(bulletBodies.remove());
             }
+            wasShot = true;
         }
     }
 
@@ -244,6 +241,10 @@ public class GameModel {
 
     public List<Integer> getKilledPlayers() {
         return killedPlayers;
+    }
+
+    public boolean wasShotSound() {
+        return wasShot;
     }
 
     private class ListenerClass implements ContactListener {
