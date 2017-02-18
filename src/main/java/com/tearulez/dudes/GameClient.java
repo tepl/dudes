@@ -65,6 +65,7 @@ class GameClient implements PlayerControls {
             // Server communication after connection can go here, or in Listener#connected().
         } catch (IOException ex) {
             ex.printStackTrace();
+            Gdx.app.exit();
         }
     }
 
