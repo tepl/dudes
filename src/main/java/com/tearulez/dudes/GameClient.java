@@ -1,5 +1,6 @@
 package com.tearulez.dudes;
 
+import com.badlogic.gdx.Gdx;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -55,7 +56,8 @@ class GameClient implements PlayerControls {
             }
 
             public void disconnected(Connection connection) {
-                System.exit(0);
+                System.out.println("Disconnected from server");
+                Gdx.app.exit();
             }
         }));
         try {

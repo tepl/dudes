@@ -64,7 +64,7 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        if (isOneOfKeysPressed(Input.Keys.ESCAPE)) System.exit(0);
+        if (isOneOfKeysPressed(Input.Keys.ESCAPE)) Gdx.app.exit();
         int dx = 0;
         int dy = 0;
         if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
