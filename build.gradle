@@ -25,3 +25,8 @@ task pack(type: Copy) {
     from jar
     from configurations.runtime
 }
+
+task deploy(type:Exec) {
+    dependsOn pack
+    commandLine 'rsync', '-rv', "$buildDir/output/lib", 'dudes@docean:lib'
+}
