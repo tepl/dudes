@@ -15,6 +15,7 @@ public class DudesGame extends Game {
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
     private WorldRenderer worldRenderer = null;
     private Sound shotSound = null;
+    private GameScreen gameScreen = null;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -29,7 +30,18 @@ public class DudesGame extends Game {
     }
 
     void onPlayerRespawn() {
-        addDelayedAction(() -> setScreen(new GameScreen(gameClient, worldRenderer)));
+        addDelayedAction(() -> setScreen(getGameScreen()));
+    }
+
+    private GameScreen getGameScreen() {
+        if (gameScreen == null) {
+            gameScreen = new GameScreen(gameClient, () -> setScreen(createMenuScreen()), worldRenderer);
+        }
+        return gameScreen;
+    }
+
+    private MenuScreen createMenuScreen() {
+        return new MenuScreen(() -> setScreen(getGameScreen()), this::exit, worldRenderer);
     }
 
     void onPlayerDeath() {
@@ -74,5 +86,9 @@ public class DudesGame extends Game {
     public void dispose() {
         super.dispose();
         shotSound.dispose();
+    }
+
+    private void exit() {
+        Gdx.app.exit();
     }
 }

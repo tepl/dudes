@@ -12,14 +12,16 @@ public class GameScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 1;
     private static final float CROSSHAIR_SIZE = 0.02f;
     private final PlayerControls playerControls;
+    private final Runnable escapeCallback;
     private final WorldRenderer worldRenderer;
     private final OrthographicCamera cam = new OrthographicCamera();
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private int mouseX;
     private int mouseY;
 
-    public GameScreen(PlayerControls playerControls, WorldRenderer worldRenderer) {
+    public GameScreen(PlayerControls playerControls, Runnable escapeCallback, WorldRenderer worldRenderer) {
         this.playerControls = playerControls;
+        this.escapeCallback = escapeCallback;
         this.worldRenderer = worldRenderer;
     }
 
@@ -64,7 +66,6 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        if (isOneOfKeysPressed(Input.Keys.ESCAPE)) Gdx.app.exit();
         int dx = 0;
         int dy = 0;
         if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
@@ -76,6 +77,7 @@ public class GameScreen extends ScreenAdapter {
         }
         worldRenderer.render();
         renderCrosshairs();
+        if (isOneOfKeysPressed(Input.Keys.ESCAPE)) escapeCallback.run();
     }
 
     private boolean isOneOfKeysPressed(int... keys) {
