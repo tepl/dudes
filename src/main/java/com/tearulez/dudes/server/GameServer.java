@@ -211,6 +211,24 @@ class GameServer {
         points3.add(Point.create(40, 5));
         walls.add(Wall.create(Point.create(-20, 10), points3));
 
+        ArrayList<Point> points4 = new ArrayList<>();
+        points4.add(Point.create(80, 40));
+        points4.add(Point.create(0, 10));
+        points4.add(Point.create(40, 0));
+        walls.add(Wall.create(Point.create(-20, -30), points4));
+
+        ArrayList<Point> points5 = new ArrayList<>();
+        points5.add(Point.create(20, 40));
+        points5.add(Point.create(10, 40));
+        points5.add(Point.create(50, 0));
+        walls.add(Wall.create(Point.create(-20, 10), points5));
+
+        ArrayList<Point> points6 = new ArrayList<>();
+        points6.add(Point.create(15, 20));
+        points6.add(Point.create(20, 10));
+        points6.add(Point.create(40, 0));
+        walls.add(Wall.create(Point.create(20, 10), points6));
+
         GameModel gameModel = GameModel.create(walls);
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
