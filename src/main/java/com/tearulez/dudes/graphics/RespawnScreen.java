@@ -51,6 +51,11 @@ public class RespawnScreen extends ScreenAdapter {
     }
 
     @Override
+    public void hide() {
+        Gdx.input.setInputProcessor(null);
+    }
+
+    @Override
     public void resize(int width, int height) {
         worldRenderer.resize(width, height);
         cam.viewportWidth = VIEWPORT_HEIGHT * width / height;

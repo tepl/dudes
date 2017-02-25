@@ -117,6 +117,11 @@ public class GameModel {
     private void processNewPlayers(Map<Integer, Point> newPlayers) {
         for (Map.Entry<Integer, Point> player : newPlayers.entrySet()) {
             Integer playerId = player.getKey();
+            if (isPlayerPresent(playerId)) {
+                log.warn("Ignoring new player, playerId: {}", playerId);
+                continue;
+            }
+            log.debug("Add new player: {}", playerId);
             Point position = player.getValue();
             Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2(position.x, position.y));
             body.setUserData(PlayerId.create(playerId));
@@ -127,8 +132,10 @@ public class GameModel {
 
     private void removePlayer(int playerId) {
         if (!isPlayerPresent(playerId)) {
+            log.warn("Removing player that does not exist, playerId: {}", playerId);
             return;
         }
+        log.debug("Remove player: {}", playerId);
         Body body = playerBodies.get(playerId);
         world.destroyBody(body);
         playerBodies.remove(playerId);
