@@ -10,11 +10,17 @@ project.ext.gdxVersion = "1.9.3"
 
 dependencies {
     compile group: 'com.esotericsoftware', name: 'kryonet', version: '2.22.0-RC1'
+
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"
     compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
     compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+
     compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
     compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+
+    compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+
     compile "org.slf4j:slf4j-api:1.7.21"
     compile "ch.qos.logback:logback-classic:1.1.7"
 }

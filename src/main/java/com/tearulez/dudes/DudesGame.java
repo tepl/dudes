@@ -16,6 +16,7 @@ public class DudesGame extends Game {
     private WorldRenderer worldRenderer = null;
     private Sound shotSound = null;
     private GameScreen gameScreen = null;
+    private MenuScreen menuScreen = null;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -41,7 +42,10 @@ public class DudesGame extends Game {
     }
 
     private MenuScreen createMenuScreen() {
-        return new MenuScreen(() -> setScreen(getGameScreen()), this::exit, worldRenderer);
+        if (menuScreen == null) {
+            menuScreen = new MenuScreen(() -> setScreen(getGameScreen()), this::exit, worldRenderer);
+        }
+        return menuScreen;
     }
 
     void onPlayerDeath() {

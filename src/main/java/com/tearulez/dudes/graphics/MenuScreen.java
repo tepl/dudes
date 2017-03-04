@@ -1,54 +1,86 @@
 package com.tearulez.dudes.graphics;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.viewport.ScalingViewport;
 
 
 public class MenuScreen extends ScreenAdapter {
-    private static final float VIEWPORT_HEIGHT = 1000;
-    private static final float BUTTON_WIDTH = 500f;
-    private static final float BUTTON_HEIGHT = 200f;
-    private final Runnable resumeCallback;
-    private final Runnable exitCallback;
+    private static final float STAGE_MIN_WORLD_WIDTH = 640f;
+    private static final float STAGE_MIN_WORLD_HEIGHT = 480f;
+    private static final float FONT_SCREEN_HEIGHT_FRACTION = 1 / 10f;
+    private static final float BUTTON_WIDTH = 300f;
+    private static final float BUTTON_HEIGHT = 100f;
     private final WorldRenderer worldRenderer;
-    private final OrthographicCamera cam = new OrthographicCamera();
-    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private Rectangle resumeButtonRect;
-    private Rectangle exitButtonRect;
-    private final BitmapFont font = new BitmapFont();
-    private final Batch batch = new SpriteBatch();
+    private final Stage stage = new Stage(new ScalingViewport(
+            Scaling.fillY,
+            STAGE_MIN_WORLD_WIDTH,
+            STAGE_MIN_WORLD_HEIGHT
+    ));
+    private final Texture buttonTexture = new Texture(Gdx.files.internal("images/button.png"));
+    private final NinePatchDrawable buttonDrawable = new NinePatchDrawable(
+            new NinePatch(buttonTexture, 12, 12, 12, 12)
+    );
+    private final FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
+            Gdx.files.internal("fonts/Oswald-Regular.ttf")
+    );
+    private BitmapFont buttonTextFont = new BitmapFont();
+    private final TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle(
+            null,
+            null,
+            null,
+            buttonTextFont
+    );
+    private final TextButton resumeButton = new TextButton("Resume", textButtonStyle);
+    private final TextButton exitButton = new TextButton("Exit", textButtonStyle);
+
 
     public MenuScreen(Runnable resumeCallback, Runnable exitCallback, WorldRenderer worldRenderer) {
-        this.resumeCallback = resumeCallback;
-        this.exitCallback = exitCallback;
         this.worldRenderer = worldRenderer;
+        stage.addActor(resumeButton);
+        stage.addActor(exitButton);
+        resumeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                resumeCallback.run();
+            }
+        });
+        resumeButton.setBounds(
+                (STAGE_MIN_WORLD_WIDTH - BUTTON_WIDTH) / 2,
+                STAGE_MIN_WORLD_HEIGHT * 3 / 4 - BUTTON_HEIGHT / 2,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT
+        );
+
+        exitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                exitCallback.run();
+            }
+        });
+        exitButton.setBounds(
+                (STAGE_MIN_WORLD_WIDTH - BUTTON_WIDTH) / 2,
+                STAGE_MIN_WORLD_HEIGHT / 4 - BUTTON_HEIGHT / 2,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT
+        );
     }
 
     @Override
     public void show() {
         Gdx.input.setCursorCatched(false);
-        Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                Vector3 p3 = cam.unproject(new Vector3(screenX, screenY, 0));
-                Vector2 p2 = new Vector2(p3.x, p3.y);
-                if (resumeButtonRect.contains(p2)) {
-                    resumeCallback.run();
-                }
-                if (exitButtonRect.contains(p2)) {
-                    exitCallback.run();
-                }
-                return true;
-            }
-        });
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
@@ -59,41 +91,37 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        worldRenderer.resize(width, height);
-        cam.viewportWidth = VIEWPORT_HEIGHT * width / height;
-        cam.viewportHeight = VIEWPORT_HEIGHT;
-        cam.update();
+        resizeFont(height);
+        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
+        style.font = buttonTextFont;
+        style.fontColor = Color.BLACK;
+        style.up = buttonDrawable;
+        resumeButton.setStyle(style);
+        exitButton.setStyle(style);
 
-        resumeButtonRect = new Rectangle(-BUTTON_WIDTH / 2, 300 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT);
-        exitButtonRect = new Rectangle(-BUTTON_WIDTH / 2, -300 - BUTTON_HEIGHT / 2, BUTTON_WIDTH, BUTTON_HEIGHT);
+        worldRenderer.resize(width, height);
+        stage.getViewport().update(width, height, true);
+    }
+
+    private void resizeFont(int height) {
+        buttonTextFont.dispose();
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = (int) (FONT_SCREEN_HEIGHT_FRACTION * height);
+        buttonTextFont = generator.generateFont(parameter);
+        buttonTextFont.getData().setScale(STAGE_MIN_WORLD_HEIGHT / height);
     }
 
     @Override
     public void render(float delta) {
         worldRenderer.render();
-        renderButtons();
-    }
-
-    private void renderButtons() {
-        shapeRenderer.setProjectionMatrix(cam.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(resumeButtonRect.x, resumeButtonRect.y, resumeButtonRect.width, resumeButtonRect.height);
-        shapeRenderer.rect(exitButtonRect.x, exitButtonRect.y, exitButtonRect.width, exitButtonRect.height);
-        shapeRenderer.end();
-
-        batch.setProjectionMatrix(cam.combined);
-        batch.begin();
-        font.setColor(Color.GREEN);
-        font.getData().setScale(10f);
-        font.draw(batch, "Resume", resumeButtonRect.x, resumeButtonRect.y + resumeButtonRect.height / 3 * 2);
-        font.draw(batch, "Exit", exitButtonRect.x, exitButtonRect.y + exitButtonRect.height / 3 * 2);
-        batch.end();
+        stage.draw();
     }
 
     @Override
     public void dispose() {
-        font.dispose();
-        batch.dispose();
+        buttonTextFont.dispose();
+        buttonTexture.dispose();
+        stage.dispose();
+        generator.dispose();
     }
 }
