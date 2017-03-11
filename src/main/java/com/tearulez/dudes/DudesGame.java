@@ -54,16 +54,18 @@ public class DudesGame extends Game {
     }
 
     void onPlayerDeath() {
-        addDelayedAction(() -> setScreen(
-                new DeathScreen(() -> setScreen(respawnScreen()))
-        ));
+        List<MenuItem> menuItems = Arrays.asList(
+                new MenuItem("Respawn", () -> setScreen(createRespawnScreen())),
+                new MenuItem("Exit", this::exit)
+        );
+        addDelayedAction(() -> setScreen(new MenuScreen(viewportFactory, menuItems, worldRenderer)));
     }
 
     void onShot() {
         addDelayedAction(() -> shotSound.play(Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))));
     }
 
-    private RespawnScreen respawnScreen() {
+    private RespawnScreen createRespawnScreen() {
         return new RespawnScreen(viewportFactory, worldRenderer, this::respawn);
     }
 
