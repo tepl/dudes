@@ -3,11 +3,12 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.tearulez.dudes.graphics.MenuItem;
 import com.tearulez.dudes.graphics.MenuScreen;
 import com.tearulez.dudes.graphics.ViewportFactory;
 import com.tearulez.dudes.graphics.WorldRenderer;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
 
 public class TestScreen {
     public static void main(String[] args) {
@@ -15,7 +16,6 @@ public class TestScreen {
         config.title = "Dudes";
         config.width = 800;
         config.height = 480;
-        AtomicInteger count = new AtomicInteger();
         ViewportFactory viewportFactory = new ViewportFactory(config.width / config.height);
 
         Game game = new Game() {
@@ -23,8 +23,7 @@ public class TestScreen {
             public void create() {
                 setScreen(new MenuScreen(
                         viewportFactory,
-                        () -> System.out.println("resume " + count.getAndIncrement()),
-                        () -> System.out.println("exit " + count.getAndIncrement()),
+                        Collections.singletonList(new MenuItem("Test", () -> System.out.println("Test"))),
                         new WorldRenderer(viewportFactory, StateSnapshot::empty)));
             }
         };

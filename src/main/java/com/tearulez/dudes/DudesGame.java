@@ -44,7 +44,11 @@ public class DudesGame extends Game {
 
     private MenuScreen createMenuScreen() {
         if (menuScreen == null) {
-            menuScreen = new MenuScreen(viewportFactory, () -> setScreen(getGameScreen()), this::exit, worldRenderer);
+            List<MenuItem> menuItems = Arrays.asList(
+                    new MenuItem("Resume", () -> setScreen(getGameScreen())),
+                    new MenuItem("Exit", this::exit)
+            );
+            menuScreen = new MenuScreen(viewportFactory, menuItems, worldRenderer);
         }
         return menuScreen;
     }

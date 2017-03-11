@@ -7,11 +7,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+
+import java.util.List;
 
 
 public class MenuScreen extends ScreenAdapter {
@@ -29,46 +33,27 @@ public class MenuScreen extends ScreenAdapter {
             Gdx.files.internal("fonts/Oswald-Regular.ttf")
     );
     private BitmapFont buttonTextFont = new BitmapFont();
-    private final TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle(
-            null,
-            null,
-            null,
-            buttonTextFont
-    );
-    private final TextButton resumeButton = new TextButton("Resume", textButtonStyle);
-    private final TextButton exitButton = new TextButton("Exit", textButtonStyle);
 
-
-    public MenuScreen(ViewportFactory viewportFactory, Runnable resumeCallback, Runnable exitCallback, WorldRenderer worldRenderer) {
+    public MenuScreen(ViewportFactory viewportFactory, List<MenuItem> menuItems, WorldRenderer worldRenderer) {
         stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
         this.worldRenderer = worldRenderer;
-        stage.addActor(resumeButton);
-        stage.addActor(exitButton);
-        resumeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                resumeCallback.run();
-            }
-        });
-        resumeButton.setBounds(
-                (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2,
-                stage.getViewport().getWorldHeight() * 3 / 4 - BUTTON_HEIGHT / 2,
-                BUTTON_WIDTH,
-                BUTTON_HEIGHT
-        );
 
-        exitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                exitCallback.run();
-            }
-        });
-        exitButton.setBounds(
-                (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2,
-                stage.getViewport().getWorldHeight() / 4 - BUTTON_HEIGHT / 2,
-                BUTTON_WIDTH,
-                BUTTON_HEIGHT
-        );
+        float buttonSpace = stage.getViewport().getWorldHeight() / menuItems.size();
+        float x = (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2;
+        float y = VIEWPORT_HEIGHT - buttonSpace + (buttonSpace - BUTTON_HEIGHT) / 2;
+        TextButtonStyle style = new TextButtonStyle(null, null, null, buttonTextFont);
+        for (MenuItem menuItem : menuItems) {
+            TextButton button = new TextButton(menuItem.getName(), style);
+            button.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    menuItem.getCallback().run();
+                }
+            });
+            button.setBounds(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
+            stage.addActor(button);
+            y -= buttonSpace;
+        }
     }
 
     @Override
@@ -90,9 +75,9 @@ public class MenuScreen extends ScreenAdapter {
         style.font = buttonTextFont;
         style.fontColor = Color.BLACK;
         style.up = buttonDrawable;
-        resumeButton.setStyle(style);
-        exitButton.setStyle(style);
-
+        for (Actor actor : stage.getActors()) {
+            ((TextButton) actor).setStyle(style);
+        }
         worldRenderer.resize(width, height);
         stage.getViewport().update(width, height, true);
     }
