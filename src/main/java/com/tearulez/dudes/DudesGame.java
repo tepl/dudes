@@ -17,6 +17,7 @@ public class DudesGame extends Game {
     private Sound shotSound = null;
     private GameScreen gameScreen = null;
     private MenuScreen menuScreen = null;
+    private ViewportFactory viewportFactory;
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -36,14 +37,14 @@ public class DudesGame extends Game {
 
     private GameScreen getGameScreen() {
         if (gameScreen == null) {
-            gameScreen = new GameScreen(gameClient, () -> setScreen(createMenuScreen()), worldRenderer);
+            gameScreen = new GameScreen(viewportFactory, gameClient, () -> setScreen(createMenuScreen()), worldRenderer);
         }
         return gameScreen;
     }
 
     private MenuScreen createMenuScreen() {
         if (menuScreen == null) {
-            menuScreen = new MenuScreen(() -> setScreen(getGameScreen()), this::exit, worldRenderer);
+            menuScreen = new MenuScreen(viewportFactory, () -> setScreen(getGameScreen()), this::exit, worldRenderer);
         }
         return menuScreen;
     }
@@ -59,7 +60,7 @@ public class DudesGame extends Game {
     }
 
     private RespawnScreen respawnScreen() {
-        return new RespawnScreen(worldRenderer, this::respawn);
+        return new RespawnScreen(viewportFactory, worldRenderer, this::respawn);
     }
 
     private void respawn(Point point) {
@@ -71,7 +72,8 @@ public class DudesGame extends Game {
     public void create() {
         Gdx.input.setCursorCatched(true);
         Mouse.setClipMouseCoordinatesToWindow(true);
-        worldRenderer = new WorldRenderer(() -> stateSnapshot);
+        viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
+        worldRenderer = new WorldRenderer(viewportFactory, () -> stateSnapshot);
         gameClient.init(this);
         shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
         setScreen(new LoadingScreen("Connecting"));

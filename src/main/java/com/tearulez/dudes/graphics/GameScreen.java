@@ -1,11 +1,15 @@
 package com.tearulez.dudes.graphics;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
-import com.tearulez.dudes.*;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.tearulez.dudes.PlayerControls;
+import com.tearulez.dudes.Point;
 
 
 public class GameScreen extends ScreenAdapter {
@@ -14,12 +18,13 @@ public class GameScreen extends ScreenAdapter {
     private final PlayerControls playerControls;
     private final Runnable escapeCallback;
     private final WorldRenderer worldRenderer;
-    private final OrthographicCamera cam = new OrthographicCamera();
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private final Viewport viewport;
     private int mouseX;
     private int mouseY;
 
-    public GameScreen(PlayerControls playerControls, Runnable escapeCallback, WorldRenderer worldRenderer) {
+    public GameScreen(ViewportFactory viewportFactory, PlayerControls playerControls, Runnable escapeCallback, WorldRenderer worldRenderer) {
+        viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.playerControls = playerControls;
         this.escapeCallback = escapeCallback;
         this.worldRenderer = worldRenderer;
@@ -59,9 +64,7 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         worldRenderer.resize(width, height);
-        cam.viewportWidth = VIEWPORT_HEIGHT * width / height;
-        cam.viewportHeight = VIEWPORT_HEIGHT;
-        cam.update();
+        viewport.update(width, height);
     }
 
     @Override
@@ -90,8 +93,8 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void renderCrosshairs() {
-        Vector3 p = cam.unproject(new Vector3(mouseX, mouseY, 0));
-        shapeRenderer.setProjectionMatrix(cam.combined);
+        Vector3 p = viewport.unproject(new Vector3(mouseX, mouseY, 0));
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.BLACK);
         shapeRenderer.line(p.x - CROSSHAIR_SIZE, p.y, p.x + CROSSHAIR_SIZE, p.y);

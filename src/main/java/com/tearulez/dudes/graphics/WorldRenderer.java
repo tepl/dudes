@@ -1,15 +1,17 @@
 package com.tearulez.dudes.graphics;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
-import com.tearulez.dudes.*;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.tearulez.dudes.GameState;
+import com.tearulez.dudes.Point;
+import com.tearulez.dudes.StateSnapshot;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.StateSnapshot;
 import com.tearulez.dudes.model.Wall;
 
 import java.util.List;
@@ -20,20 +22,20 @@ public class WorldRenderer {
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private OrthographicCamera cam = new OrthographicCamera();
+    private Viewport viewport;
 
-    public WorldRenderer(GameState state) {
+    public WorldRenderer(ViewportFactory viewportFactory, GameState state) {
+        viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.state = state;
     }
 
     void resize(int width, int height) {
-        cam.viewportWidth = VIEWPORT_HEIGHT * width / height;
-        cam.viewportHeight = VIEWPORT_HEIGHT;
-        cam.update();
+        viewport.update(width, height);
     }
 
     void render() {
         StateSnapshot stateSnapshot = state.snapshot();
+        Camera cam = viewport.getCamera();
         if (stateSnapshot.getPlayer().isPresent()) {
             Point playerPosition = stateSnapshot.getPlayer().get().getPosition();
             cam.position.set(playerPosition.x, playerPosition.y, 0);
@@ -50,7 +52,7 @@ public class WorldRenderer {
     }
 
     Point convertScreenToWorld(int screenX, int screenY) {
-        Vector3 p = cam.unproject(new Vector3(screenX, screenY, 0));
+        Vector3 p = viewport.unproject(new Vector3(screenX, screenY, 0));
         return Point.create(p.x, p.y);
     }
 

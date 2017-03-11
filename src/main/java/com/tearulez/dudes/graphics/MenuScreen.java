@@ -12,22 +12,15 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
-import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.viewport.ScalingViewport;
 
 
 public class MenuScreen extends ScreenAdapter {
-    private static final float STAGE_MIN_WORLD_WIDTH = 640f;
-    private static final float STAGE_MIN_WORLD_HEIGHT = 480f;
+    private static final float VIEWPORT_HEIGHT = 480;
     private static final float FONT_SCREEN_HEIGHT_FRACTION = 1 / 10f;
     private static final float BUTTON_WIDTH = 300f;
     private static final float BUTTON_HEIGHT = 100f;
     private final WorldRenderer worldRenderer;
-    private final Stage stage = new Stage(new ScalingViewport(
-            Scaling.fillY,
-            STAGE_MIN_WORLD_WIDTH,
-            STAGE_MIN_WORLD_HEIGHT
-    ));
+    private final Stage stage;
     private final Texture buttonTexture = new Texture(Gdx.files.internal("images/button.png"));
     private final NinePatchDrawable buttonDrawable = new NinePatchDrawable(
             new NinePatch(buttonTexture, 12, 12, 12, 12)
@@ -46,7 +39,8 @@ public class MenuScreen extends ScreenAdapter {
     private final TextButton exitButton = new TextButton("Exit", textButtonStyle);
 
 
-    public MenuScreen(Runnable resumeCallback, Runnable exitCallback, WorldRenderer worldRenderer) {
+    public MenuScreen(ViewportFactory viewportFactory, Runnable resumeCallback, Runnable exitCallback, WorldRenderer worldRenderer) {
+        stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
         this.worldRenderer = worldRenderer;
         stage.addActor(resumeButton);
         stage.addActor(exitButton);
@@ -57,8 +51,8 @@ public class MenuScreen extends ScreenAdapter {
             }
         });
         resumeButton.setBounds(
-                (STAGE_MIN_WORLD_WIDTH - BUTTON_WIDTH) / 2,
-                STAGE_MIN_WORLD_HEIGHT * 3 / 4 - BUTTON_HEIGHT / 2,
+                (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2,
+                stage.getViewport().getWorldHeight() * 3 / 4 - BUTTON_HEIGHT / 2,
                 BUTTON_WIDTH,
                 BUTTON_HEIGHT
         );
@@ -70,8 +64,8 @@ public class MenuScreen extends ScreenAdapter {
             }
         });
         exitButton.setBounds(
-                (STAGE_MIN_WORLD_WIDTH - BUTTON_WIDTH) / 2,
-                STAGE_MIN_WORLD_HEIGHT / 4 - BUTTON_HEIGHT / 2,
+                (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2,
+                stage.getViewport().getWorldHeight() / 4 - BUTTON_HEIGHT / 2,
                 BUTTON_WIDTH,
                 BUTTON_HEIGHT
         );
@@ -108,7 +102,7 @@ public class MenuScreen extends ScreenAdapter {
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.size = (int) (FONT_SCREEN_HEIGHT_FRACTION * height);
         buttonTextFont = generator.generateFont(parameter);
-        buttonTextFont.getData().setScale(STAGE_MIN_WORLD_HEIGHT / height);
+        buttonTextFont.getData().setScale(stage.getViewport().getWorldHeight() / height);
     }
 
     @Override
