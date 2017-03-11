@@ -4,9 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -18,8 +15,6 @@ public class RespawnScreen extends ScreenAdapter {
     private static final float RESPAWN_CIRCLE_RADIUS = 0.01f;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Viewport viewport;
-    private final BitmapFont font = new BitmapFont();
-    private final Batch batch = new SpriteBatch();
     private final WorldRenderer worldRenderer;
     private final RespawnControls respawnControls;
     private int mouseX;
@@ -70,10 +65,6 @@ public class RespawnScreen extends ScreenAdapter {
 
     private void renderText() {
         worldRenderer.render();
-        batch.begin();
-        font.setColor(Color.BLACK);
-        font.draw(batch, "Click to respawn", 100, 150);
-        batch.end();
     }
 
     private void renderRespawnPoint() {
