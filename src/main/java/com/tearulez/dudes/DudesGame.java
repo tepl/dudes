@@ -2,6 +2,7 @@ package com.tearulez.dudes;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.tearulez.dudes.graphics.*;
 import org.lwjgl.input.Mouse;
@@ -15,8 +16,6 @@ public class DudesGame extends Game {
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
     private WorldRenderer worldRenderer = null;
     private Sound shotSound = null;
-    private GameScreen gameScreen = null;
-    private MenuScreen menuScreen = null;
     private ViewportFactory viewportFactory;
 
     DudesGame(GameClient gameClient) {
@@ -31,42 +30,40 @@ public class DudesGame extends Game {
         addDelayedAction(() -> this.stateSnapshot = stateSnapshot);
     }
 
-    void onPlayerRespawn() {
-        addDelayedAction(() -> setScreen(getGameScreen()));
+    private GameScreen createGameScreen() {
+        return new GameScreen(viewportFactory, gameClient, () -> setScreen(createEscapeScreen()), worldRenderer);
     }
 
-    private GameScreen getGameScreen() {
-        if (gameScreen == null) {
-            gameScreen = new GameScreen(viewportFactory, gameClient, () -> setScreen(createMenuScreen()), worldRenderer);
-        }
-        return gameScreen;
+    private MenuScreen createEscapeScreen() {
+        List<MenuItem> menuItems = Arrays.asList(
+                new MenuItem("Resume", () -> setScreen(createGameScreen())),
+                new MenuItem("Exit", this::exit)
+        );
+        return new MenuScreen(viewportFactory, menuItems, worldRenderer);
     }
 
-    private MenuScreen createMenuScreen() {
-        if (menuScreen == null) {
-            List<MenuItem> menuItems = Arrays.asList(
-                    new MenuItem("Resume", () -> setScreen(getGameScreen())),
-                    new MenuItem("Exit", this::exit)
-            );
-            menuScreen = new MenuScreen(viewportFactory, menuItems, worldRenderer);
-        }
-        return menuScreen;
-    }
-
-    void onPlayerDeath() {
+    private MenuScreen createDeathScreen() {
         List<MenuItem> menuItems = Arrays.asList(
                 new MenuItem("Respawn", () -> setScreen(createRespawnScreen())),
                 new MenuItem("Exit", this::exit)
         );
-        addDelayedAction(() -> setScreen(new MenuScreen(viewportFactory, menuItems, worldRenderer)));
+        return new MenuScreen(viewportFactory, menuItems, worldRenderer);
+    }
+
+    private RespawnScreen createRespawnScreen() {
+        return new RespawnScreen(viewportFactory, worldRenderer, this::respawn);
     }
 
     void onShot() {
         addDelayedAction(() -> shotSound.play(Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))));
     }
 
-    private RespawnScreen createRespawnScreen() {
-        return new RespawnScreen(viewportFactory, worldRenderer, this::respawn);
+    void onPlayerDeath() {
+        addDelayedAction(() -> setScreen(createDeathScreen()));
+    }
+
+    void onPlayerRespawn() {
+        addDelayedAction(() -> setScreen(createGameScreen()));
     }
 
     private void respawn(Point point) {
@@ -92,6 +89,15 @@ public class DudesGame extends Game {
         }
         delayedActions.clear();
         super.render();
+    }
+
+    @Override
+    public void setScreen(Screen screen) {
+        Screen previousScreen = getScreen();
+        super.setScreen(screen);
+        if (previousScreen != null) {
+            previousScreen.dispose();
+        }
     }
 
     @Override
