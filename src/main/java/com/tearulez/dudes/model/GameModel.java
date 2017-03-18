@@ -24,9 +24,11 @@ public class GameModel {
     private static final float MAX_SPEED = 10f;
     private static final int FORCE_SCALE = 100;
     private static final int BREAKING_FORCE = 20;
+    private static final int MIN_SHOOTING_CYCLE_TICKS = 5;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
+    private Map<Integer, Long> previousShootActionTicks = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
 
     private World world;
@@ -34,6 +36,8 @@ public class GameModel {
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
     private boolean wasShot = false;
+
+    private long currentTick = 0;
 
     private GameModel(World world) {
         this.world = world;
@@ -88,6 +92,7 @@ public class GameModel {
         processShootActions(shootActions);
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         handlePlayerBulletCollisions();
+        currentTick += 1;
     }
 
     private void handlePlayerBulletCollisions() {
@@ -140,6 +145,7 @@ public class GameModel {
         world.destroyBody(body);
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
+        previousShootActionTicks.remove(playerId);
     }
 
     private Body createCircleBody(float circleRadius, Vector2 position) {
@@ -191,6 +197,11 @@ public class GameModel {
             if (!isPlayerPresent(playerId)) {
                 continue;
             }
+            Long previousShotTick = previousShootActionTicks.get(playerId);
+            if (previousShotTick != null && currentTick - previousShotTick < MIN_SHOOTING_CYCLE_TICKS) {
+                continue;
+            }
+            previousShootActionTicks.put(playerId, currentTick);
             Network.ShootAt shootAt = action.getValue();
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
             Body body = playerBodies.get(playerId);

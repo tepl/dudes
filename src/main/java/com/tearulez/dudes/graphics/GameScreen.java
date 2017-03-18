@@ -2,7 +2,6 @@ package com.tearulez.dudes.graphics;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -20,45 +19,12 @@ public class GameScreen extends ScreenAdapter {
     private final WorldRenderer worldRenderer;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Viewport viewport;
-    private int mouseX;
-    private int mouseY;
 
     public GameScreen(ViewportFactory viewportFactory, PlayerControls playerControls, Runnable escapeCallback, WorldRenderer worldRenderer) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.playerControls = playerControls;
         this.escapeCallback = escapeCallback;
         this.worldRenderer = worldRenderer;
-    }
-
-    @Override
-    public void show() {
-        Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean mouseMoved(int screenX, int screenY) {
-                mouseX = screenX;
-                mouseY = screenY;
-                return true;
-            }
-
-            @Override
-            public boolean touchDragged(int screenX, int screenY, int pointer) {
-                mouseX = screenX;
-                mouseY = screenY;
-                return true;
-            }
-
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                Point target = worldRenderer.convertScreenToWorld(screenX, screenY);
-                playerControls.shootAt(target.x, target.y);
-                return true;
-            }
-        });
-    }
-
-    @Override
-    public void hide() {
-        Gdx.input.setInputProcessor(null);
     }
 
     @Override
@@ -81,6 +47,10 @@ public class GameScreen extends ScreenAdapter {
         worldRenderer.render();
         renderCrosshairs();
         if (isOneOfKeysPressed(Input.Keys.ESCAPE)) escapeCallback.run();
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            Point target = worldRenderer.convertScreenToWorld(Gdx.input.getX(), Gdx.input.getY());
+            playerControls.shootAt(target.x, target.y);
+        }
     }
 
     private boolean isOneOfKeysPressed(int... keys) {
@@ -93,7 +63,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void renderCrosshairs() {
-        Vector3 p = viewport.unproject(new Vector3(mouseX, mouseY, 0));
+        Vector3 p = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.BLACK);
