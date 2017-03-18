@@ -75,6 +75,8 @@ public class DudesGame extends Game {
     public void create() {
         Gdx.input.setCursorCatched(true);
         Mouse.setClipMouseCoordinatesToWindow(true);
+        // We need all our Viewports to have the same aspect ratio.
+        // see Viewport.apply and HdpiUtils.glViewport
         viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
         worldRenderer = new WorldRenderer(viewportFactory, () -> stateSnapshot);
         gameClient.init(this);
