@@ -256,9 +256,7 @@ public class GameModel {
                 wasDryFire = true;
                 continue;
             }
-            // Reloading
-            Long previousReloadingTick = previousReloadActionTicks.get(playerId);
-            if (previousReloadingTick != null && currentTick - previousReloadingTick < RELOAD_TIME_IN_TICKS) {
+            if (isPlayerReloading(playerId)) {
                 continue;
             }
             Network.ShootAt shootAt = action.getValue();
@@ -288,10 +286,18 @@ public class GameModel {
 
     private void processReloading(Set<Integer> players) {
         for (Integer playerId : players) {
+            if (isPlayerReloading(playerId)) {
+                continue;
+            }
             magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
             previousReloadActionTicks.put(playerId, currentTick);
             wasReloading = true;
         }
+    }
+
+    private boolean isPlayerReloading(int playerId) {
+        Long previousReloadingTick = previousReloadActionTicks.get(playerId);
+        return previousReloadingTick != null && currentTick - previousReloadingTick < RELOAD_TIME_IN_TICKS;
     }
 
     public Map<Integer, Player> getPlayers() {
