@@ -1,6 +1,7 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -9,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.GameState;
 import com.tearulez.dudes.Point;
+import com.tearulez.dudes.SoundSettings;
 import com.tearulez.dudes.StateSnapshot;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
@@ -17,16 +19,22 @@ import com.tearulez.dudes.model.Wall;
 import java.util.List;
 import java.util.Optional;
 
-public class WorldRenderer {
+public class WorldPresentation {
     private static final float VIEWPORT_HEIGHT = 50;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
+    private final SoundSettings soundSettings;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Viewport viewport;
+    private Sound dryFireSound = Gdx.audio.newSound(Gdx.files.internal("sounds/dryfire.mp3"));
+    private Sound reloadingSound = Gdx.audio.newSound(Gdx.files.internal("sounds/reload.mp3"));
+    private Sound shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
 
-    public WorldRenderer(ViewportFactory viewportFactory, GameState state) {
+
+    public WorldPresentation(ViewportFactory viewportFactory, GameState state, SoundSettings soundSettings) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.state = state;
+        this.soundSettings = soundSettings;
     }
 
     void resize(int width, int height) {
@@ -49,6 +57,23 @@ public class WorldRenderer {
         renderWalls(stateSnapshot.getWalls());
         renderPlayers(stateSnapshot.getPlayer(), stateSnapshot.getOtherPlayers());
         renderBullets(stateSnapshot.getBullets());
+        playSounds(stateSnapshot);
+    }
+
+    private void playSounds(StateSnapshot stateSnapshot) {
+        if (stateSnapshot.wasDryFire()) {
+            playSound(dryFireSound);
+        }
+        if (stateSnapshot.wasReload()) {
+            playSound(reloadingSound);
+        }
+        if (stateSnapshot.wasShot()) {
+            playSound(shotSound);
+        }
+    }
+
+    private void playSound(Sound sound) {
+        sound.play(soundSettings.getVolume());
     }
 
     Point convertScreenToWorld(int screenX, int screenY) {
@@ -105,5 +130,12 @@ public class WorldRenderer {
             shapeRenderer.polygon(vertices);
         }
         shapeRenderer.end();
+    }
+
+    public void dispose() {
+        shapeRenderer.dispose();
+        shotSound.dispose();
+        reloadingSound.dispose();
+        dryFireSound.dispose();
     }
 }

@@ -10,10 +10,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.tearulez.dudes.Assertions.*;
+
 public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
 
-    public static final float TIME_STEP = 1.0f / 60;
+    private static final int TICKS_PER_SECOND = 60;
+    public static final float TIME_STEP = 1.0f / TICKS_PER_SECOND;
     public static final float PLAYER_CIRCLE_RADIUS = 1;
     public static final float BULLET_CIRCLE_RADIUS = 0.2f;
 
@@ -24,11 +27,15 @@ public class GameModel {
     private static final float MAX_SPEED = 10f;
     private static final int FORCE_SCALE = 100;
     private static final int BREAKING_FORCE = 20;
-    private static final int MIN_SHOOTING_CYCLE_TICKS = 5;
+    private static final int MIN_SHOOTING_CYCLE_IN_TICKS = TICKS_PER_SECOND / 12;
+    private static final int MAGAZINE_SIZE = 30;
+    private static final int RELOAD_TIME_IN_TICKS = TICKS_PER_SECOND * 2;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
     private Map<Integer, Long> previousShootActionTicks = new HashMap<>();
+    private Map<Integer, Long> previousReloadActionTicks = new HashMap<>();
+    private Map<Integer, Integer> magazineAmmoCounts = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
 
     private World world;
@@ -36,6 +43,8 @@ public class GameModel {
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
     private boolean wasShot = false;
+    private boolean wasDryFire = false;
+    private boolean wasReloading = false;
 
     private long currentTick = 0;
 
@@ -84,15 +93,25 @@ public class GameModel {
     public void nextStep(Map<Integer, Point> newPlayers,
                          List<Integer> playersToRemove,
                          Map<Integer, Network.MovePlayer> moveActions,
-                         Map<Integer, Network.ShootAt> shootActions) {
+                         Map<Integer, Network.ShootAt> shootActions,
+                         Set<Integer> reloadingPlayers) {
+        checkInvariants();
         cleanUp();
         processNewPlayers(newPlayers);
         playersToRemove.forEach(this::removePlayer);
         processMoveActions(moveActions);
         processShootActions(shootActions);
+        processReloading(reloadingPlayers);
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         handlePlayerBulletCollisions();
         currentTick += 1;
+    }
+
+    private void checkInvariants() {
+        assertState(
+                world.getBodyCount() < playerBodies.size() + walls.size() + MAX_BULLET_COUNT,
+                "world body count is less than players count + walls count + max bullet count"
+        );
     }
 
     private void handlePlayerBulletCollisions() {
@@ -117,6 +136,8 @@ public class GameModel {
     private void cleanUp() {
         killedPlayers.clear();
         wasShot = false;
+        wasDryFire = false;
+        wasReloading = false;
     }
 
     private void processNewPlayers(Map<Integer, Point> newPlayers) {
@@ -132,6 +153,7 @@ public class GameModel {
             body.setUserData(PlayerId.create(playerId));
             playerBodies.put(playerId, body);
             playerHealths.put(playerId, Player.MAX_HEALTH);
+            magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
         }
     }
 
@@ -146,6 +168,8 @@ public class GameModel {
         playerBodies.remove(playerId);
         playerHealths.remove(playerId);
         previousShootActionTicks.remove(playerId);
+        previousReloadActionTicks.remove(playerId);
+        magazineAmmoCounts.remove(playerId);
     }
 
     private Body createCircleBody(float circleRadius, Vector2 position) {
@@ -197,11 +221,24 @@ public class GameModel {
             if (!isPlayerPresent(playerId)) {
                 continue;
             }
+            // Fire rate limit
             Long previousShotTick = previousShootActionTicks.get(playerId);
-            if (previousShotTick != null && currentTick - previousShotTick < MIN_SHOOTING_CYCLE_TICKS) {
+            if (previousShotTick != null && currentTick - previousShotTick < MIN_SHOOTING_CYCLE_IN_TICKS) {
                 continue;
             }
             previousShootActionTicks.put(playerId, currentTick);
+            // Empty magazine
+            Integer ammoCount = magazineAmmoCounts.get(playerId);
+            assertState(ammoCount >= 0, "ammo count must be non-negative");
+            if (ammoCount == 0) {
+                wasDryFire = true;
+                continue;
+            }
+            // Reloading
+            Long previousReloadingTick = previousReloadActionTicks.get(playerId);
+            if (previousReloadingTick != null && currentTick - previousReloadingTick < RELOAD_TIME_IN_TICKS) {
+                continue;
+            }
             Network.ShootAt shootAt = action.getValue();
             Vector2 target = new Vector2(shootAt.x, shootAt.y);
             Body body = playerBodies.get(playerId);
@@ -223,6 +260,15 @@ public class GameModel {
                 world.destroyBody(bulletBodies.remove());
             }
             wasShot = true;
+            magazineAmmoCounts.put(playerId, magazineAmmoCounts.get(playerId) - 1);
+        }
+    }
+
+    private void processReloading(Set<Integer> players) {
+        for (Integer playerId : players) {
+            magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
+            previousReloadActionTicks.put(playerId, currentTick);
+            wasReloading = true;
         }
     }
 
@@ -262,8 +308,16 @@ public class GameModel {
         return killedPlayers;
     }
 
-    public boolean wasShotSound() {
+    public boolean wasShot() {
         return wasShot;
+    }
+
+    public boolean wasDryFire() {
+        return wasDryFire;
+    }
+
+    public boolean wasReloading() {
+        return wasReloading;
     }
 
     private class ListenerClass implements ContactListener {

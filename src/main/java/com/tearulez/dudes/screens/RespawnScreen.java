@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -15,14 +15,14 @@ public class RespawnScreen extends ScreenAdapter {
     private static final float RESPAWN_CIRCLE_RADIUS = 0.01f;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Viewport viewport;
-    private final WorldRenderer worldRenderer;
+    private final WorldPresentation worldPresentation;
     private final RespawnControls respawnControls;
     private int mouseX;
     private int mouseY;
 
-    public RespawnScreen(ViewportFactory viewportFactory, WorldRenderer worldRenderer, RespawnControls respawnControls) {
+    public RespawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, RespawnControls respawnControls) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
-        this.worldRenderer = worldRenderer;
+        this.worldPresentation = worldPresentation;
         this.respawnControls = respawnControls;
     }
 
@@ -38,7 +38,7 @@ public class RespawnScreen extends ScreenAdapter {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                Point point = worldRenderer.convertScreenToWorld(screenX, screenY);
+                Point point = worldPresentation.convertScreenToWorld(screenX, screenY);
                 respawnControls.respawnAt(point);
                 return true;
             }
@@ -53,7 +53,7 @@ public class RespawnScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        worldRenderer.resize(width, height);
+        worldPresentation.resize(width, height);
         viewport.update(width, height);
     }
 
@@ -64,7 +64,7 @@ public class RespawnScreen extends ScreenAdapter {
     }
 
     private void renderText() {
-        worldRenderer.render();
+        worldPresentation.render();
     }
 
     private void renderRespawnPoint() {

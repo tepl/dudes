@@ -3,14 +3,14 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.tearulez.dudes.graphics.MenuItem;
-import com.tearulez.dudes.graphics.MenuScreen;
-import com.tearulez.dudes.graphics.ViewportFactory;
-import com.tearulez.dudes.graphics.WorldRenderer;
+import com.tearulez.dudes.screens.MenuItem;
+import com.tearulez.dudes.screens.MenuScreen;
+import com.tearulez.dudes.screens.ViewportFactory;
+import com.tearulez.dudes.screens.WorldPresentation;
 
 import java.util.Collections;
 
-public class TestScreen {
+public class ScreenTest {
     public static void main(String[] args) {
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.title = "Dudes";
@@ -24,7 +24,7 @@ public class TestScreen {
                 setScreen(new MenuScreen(
                         viewportFactory,
                         Collections.singletonList(new MenuItem("Test", () -> System.out.println("Test"))),
-                        new WorldRenderer(viewportFactory, StateSnapshot::empty)));
+                        new WorldPresentation(viewportFactory, StateSnapshot::empty, new SoundSettings(0))));
             }
         };
         new LwjglApplication(game, config);

@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;

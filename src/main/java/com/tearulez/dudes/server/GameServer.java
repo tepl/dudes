@@ -47,23 +47,19 @@ class GameServer {
                     Network.Respawned respawned = new Network.Respawned();
                     connection.playerId = registerNewPlayer();
                     server.sendToTCP(c.getID(), respawned);
-                }
-
-                if (object instanceof Network.MovePlayer) {
+                } else if (object instanceof Network.MovePlayer) {
                     Network.MovePlayer action = (Network.MovePlayer) object;
                     connection.acceptMoveAction(action);
-                }
-
-                if (object instanceof Network.ShootAt) {
+                } else if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
                     connection.acceptShootAction(action);
-                }
-
-                if (object instanceof Network.RespawnRequest) {
+                } else if (object instanceof Network.RespawnRequest) {
                     Network.RespawnRequest action = (Network.RespawnRequest) object;
                     addPlayer(connection.playerId, action.startingPosition);
                     Network.Respawned respawned = new Network.Respawned();
                     server.sendToTCP(c.getID(), respawned);
+                } else if (object instanceof Network.Reload) {
+                    connection.acceptReloadAction((Network.Reload) object);
                 }
             }
 
@@ -97,20 +93,14 @@ class GameServer {
                 synchronized (GameServer.this) {
                     HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
                     HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
-                    gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions);
+                    Set<Integer> reloadingPlayers = collectReloadingPlayers();
+                    gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions, reloadingPlayers);
                     newPlayers.clear();
                     playersToRemove.clear();
                 }
                 log.debug("sending updated model to clients");
 
-                Map<Integer, Player> players = gameModel.getPlayers();
-                ArrayList<Wall> walls = gameModel.getWalls();
-                List<Point> bulletPositions = gameModel.getBulletPositions();
-                sendStateSnapshots(players, walls, bulletPositions);
-
-                if (gameModel.wasShotSound()) {
-                    server.sendToAllTCP(new Network.ShotEvent());
-                }
+                sendStateSnapshots();
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
                 for (Integer playerId : gameModel.getKilledPlayers()) {
@@ -130,9 +120,8 @@ class GameServer {
         );
     }
 
-    private void sendStateSnapshots(Map<Integer, Player> players,
-                                    ArrayList<Wall> walls,
-                                    List<Point> bulletPositions) {
+    private void sendStateSnapshots() {
+        Map<Integer, Player> players = gameModel.getPlayers();
         for (PlayerConnection connection : playerConnections()) {
             Optional<Player> player = Optional.ofNullable(players.get(connection.playerId));
             List<Player> otherPlayers = players.entrySet().stream()
@@ -143,8 +132,11 @@ class GameServer {
             updateModel.stateSnapshot = StateSnapshot.create(
                     player,
                     otherPlayers,
-                    walls,
-                    bulletPositions
+                    gameModel.getWalls(),
+                    gameModel.getBulletPositions(),
+                    gameModel.wasDryFire(),
+                    gameModel.wasReloading(),
+                    gameModel.wasShot()
             );
             server.sendToTCP(connection.getID(), updateModel);
         }
@@ -183,6 +175,16 @@ class GameServer {
             );
         }
         return shootActions;
+    }
+
+    private Set<Integer> collectReloadingPlayers() {
+        Set<Integer> players = new HashSet<>();
+        for (PlayerConnection connection : playerConnections()) {
+            connection.reloadAction().ifPresent(
+                    action -> players.add(connection.playerId)
+            );
+        }
+        return players;
     }
 
     private void startServing(int port) throws IOException {

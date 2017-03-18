@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -23,7 +23,7 @@ public class MenuScreen extends ScreenAdapter {
     private static final float FONT_SCREEN_HEIGHT_FRACTION = 1 / 10f;
     private static final float BUTTON_WIDTH = 300f;
     private static final float BUTTON_HEIGHT = 100f;
-    private final WorldRenderer worldRenderer;
+    private final WorldPresentation worldPresentation;
     private final Stage stage;
     private final Texture buttonTexture = new Texture(Gdx.files.internal("images/button.png"));
     private final NinePatchDrawable buttonDrawable = new NinePatchDrawable(
@@ -34,9 +34,9 @@ public class MenuScreen extends ScreenAdapter {
     );
     private BitmapFont buttonTextFont = new BitmapFont();
 
-    public MenuScreen(ViewportFactory viewportFactory, List<MenuItem> menuItems, WorldRenderer worldRenderer) {
+    public MenuScreen(ViewportFactory viewportFactory, List<MenuItem> menuItems, WorldPresentation worldPresentation) {
         stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
-        this.worldRenderer = worldRenderer;
+        this.worldPresentation = worldPresentation;
 
         float buttonSpace = stage.getViewport().getWorldHeight() / menuItems.size();
         float x = (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2;
@@ -78,7 +78,7 @@ public class MenuScreen extends ScreenAdapter {
         for (Actor actor : stage.getActors()) {
             ((TextButton) actor).setStyle(style);
         }
-        worldRenderer.resize(width, height);
+        worldPresentation.resize(width, height);
         stage.getViewport().update(width, height, true);
     }
 
@@ -92,7 +92,7 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        worldRenderer.render();
+        worldPresentation.render();
         stage.draw();
     }
 

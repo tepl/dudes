@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 public class MenuItem {
 

@@ -11,6 +11,7 @@ class PlayerConnection extends Connection {
     private final int moveActionMaxTTL;
     private int moveActionTTL = 0;
     private Optional<Network.ShootAt> bufferedShootAction = Optional.empty();
+    private Optional<Network.Reload> bufferedReloadAction = Optional.empty();
 
     PlayerConnection(int moveActionMaxTTL) {
         if (moveActionMaxTTL <= 0) {
@@ -41,5 +42,15 @@ class PlayerConnection extends Connection {
 
     synchronized void acceptShootAction(Network.ShootAt shootAction) {
         bufferedShootAction = Optional.of(shootAction);
+    }
+
+    synchronized void acceptReloadAction(Network.Reload reloadAction) {
+        bufferedReloadAction = Optional.of(reloadAction);
+    }
+
+    synchronized Optional<Network.Reload> reloadAction() {
+        Optional<Network.Reload> action = bufferedReloadAction;
+        bufferedReloadAction = Optional.empty();
+        return action;
     }
 }

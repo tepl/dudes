@@ -47,11 +47,6 @@ class GameClient implements PlayerControls {
                 if (object instanceof Network.PlayerDeath) {
                     game.onPlayerDeath();
                 }
-
-                // Shot event
-                if (object instanceof Network.ShotEvent) {
-                    game.onShot();
-                }
             }
 
             public void disconnected(Connection connection) {
@@ -80,6 +75,11 @@ class GameClient implements PlayerControls {
         shootAt.x = x;
         shootAt.y = y;
         client.sendTCP(shootAt);
+    }
+
+    @Override
+    public void reload() {
+        client.sendTCP(new Network.Reload());
     }
 
     void closeServerConnection() {

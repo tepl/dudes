@@ -28,7 +28,7 @@ public class Network {
         kryo.register(Player.class);
         kryo.register(PlayerDeath.class);
         kryo.register(RespawnRequest.class);
-        kryo.register(ShotEvent.class);
+        kryo.register(Reload.class);
     }
 
     public static class Login {
@@ -56,6 +56,6 @@ public class Network {
         public Point startingPosition;
     }
 
-    public static class ShotEvent {
+    public static class Reload {
     }
 }

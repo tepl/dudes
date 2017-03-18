@@ -12,6 +12,9 @@ public class StateSnapshot {
     private List<Player> otherPlayers;
     private List<Wall> walls;
     private List<Point> bullets;
+    private boolean wasDryFire;
+    private boolean wasReload;
+    private boolean wasShot;
 
     private StateSnapshot() {
     }
@@ -19,17 +22,31 @@ public class StateSnapshot {
     public static StateSnapshot create(Optional<Player> player,
                                        List<Player> otherPlayers,
                                        List<Wall> walls,
-                                       List<Point> bullets) {
+                                       List<Point> bullets,
+                                       boolean wasDryFire,
+                                       boolean wasReload,
+                                       boolean wasShot) {
         StateSnapshot state = new StateSnapshot();
         state.player = player.orElse(null);
         state.otherPlayers = otherPlayers;
         state.walls = walls;
         state.bullets = bullets;
+        state.wasDryFire = wasDryFire;
+        state.wasReload = wasReload;
+        state.wasShot = wasShot;
         return state;
     }
 
     static StateSnapshot empty() {
-        return create(Optional.empty(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        return create(
+                Optional.empty(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                false,
+                false,
+                false
+        );
     }
 
     public Optional<Player> getPlayer() {
@@ -46,5 +63,17 @@ public class StateSnapshot {
 
     public List<Point> getBullets() {
         return bullets;
+    }
+
+    public boolean wasDryFire() {
+        return wasDryFire;
+    }
+
+    public boolean wasReload() {
+        return wasReload;
+    }
+
+    public boolean wasShot() {
+        return wasShot;
     }
 }

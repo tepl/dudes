@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;

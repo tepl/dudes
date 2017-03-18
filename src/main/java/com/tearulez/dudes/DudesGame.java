@@ -3,8 +3,7 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
-import com.tearulez.dudes.graphics.*;
+import com.tearulez.dudes.screens.*;
 import org.lwjgl.input.Mouse;
 
 import java.util.*;
@@ -14,9 +13,11 @@ public class DudesGame extends Game {
     private final GameClient gameClient;
     private List<Runnable> delayedActions = new ArrayList<>();
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
-    private WorldRenderer worldRenderer = null;
-    private Sound shotSound = null;
+    private WorldPresentation worldPresentation = null;
     private ViewportFactory viewportFactory;
+    private final SoundSettings soundSettings = new SoundSettings(
+            Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))
+    );
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -31,7 +32,7 @@ public class DudesGame extends Game {
     }
 
     private GameScreen createGameScreen() {
-        return new GameScreen(viewportFactory, gameClient, () -> setScreen(createEscapeScreen()), worldRenderer);
+        return new GameScreen(viewportFactory, gameClient, () -> setScreen(createEscapeScreen()), worldPresentation);
     }
 
     private MenuScreen createEscapeScreen() {
@@ -39,7 +40,7 @@ public class DudesGame extends Game {
                 new MenuItem("Resume", () -> setScreen(createGameScreen())),
                 new MenuItem("Exit", this::exit)
         );
-        return new MenuScreen(viewportFactory, menuItems, worldRenderer);
+        return new MenuScreen(viewportFactory, menuItems, worldPresentation);
     }
 
     private MenuScreen createDeathScreen() {
@@ -47,15 +48,11 @@ public class DudesGame extends Game {
                 new MenuItem("Respawn", () -> setScreen(createRespawnScreen())),
                 new MenuItem("Exit", this::exit)
         );
-        return new MenuScreen(viewportFactory, menuItems, worldRenderer);
+        return new MenuScreen(viewportFactory, menuItems, worldPresentation);
     }
 
     private RespawnScreen createRespawnScreen() {
-        return new RespawnScreen(viewportFactory, worldRenderer, this::respawn);
-    }
-
-    void onShot() {
-        addDelayedAction(() -> shotSound.play(Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))));
+        return new RespawnScreen(viewportFactory, worldPresentation, this::respawn);
     }
 
     void onPlayerDeath() {
@@ -78,9 +75,8 @@ public class DudesGame extends Game {
         // We need all our Viewports to have the same aspect ratio.
         // see Viewport.apply and HdpiUtils.glViewport
         viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
-        worldRenderer = new WorldRenderer(viewportFactory, () -> stateSnapshot);
+        worldPresentation = new WorldPresentation(viewportFactory, () -> stateSnapshot, soundSettings);
         gameClient.init(this);
-        shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
         setScreen(new LoadingScreen("Connecting"));
     }
 
@@ -105,7 +101,8 @@ public class DudesGame extends Game {
     @Override
     public void dispose() {
         super.dispose();
-        shotSound.dispose();
+        getScreen().dispose();
+        worldPresentation.dispose();
     }
 
     private void exit() {

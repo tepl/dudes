@@ -1,4 +1,4 @@
-package com.tearulez.dudes.graphics;
+package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -16,20 +16,20 @@ public class GameScreen extends ScreenAdapter {
     private static final float CROSSHAIR_SIZE = 0.02f;
     private final PlayerControls playerControls;
     private final Runnable escapeCallback;
-    private final WorldRenderer worldRenderer;
+    private final WorldPresentation worldPresentation;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Viewport viewport;
 
-    public GameScreen(ViewportFactory viewportFactory, PlayerControls playerControls, Runnable escapeCallback, WorldRenderer worldRenderer) {
+    public GameScreen(ViewportFactory viewportFactory, PlayerControls playerControls, Runnable escapeCallback, WorldPresentation worldPresentation) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.playerControls = playerControls;
         this.escapeCallback = escapeCallback;
-        this.worldRenderer = worldRenderer;
+        this.worldPresentation = worldPresentation;
     }
 
     @Override
     public void resize(int width, int height) {
-        worldRenderer.resize(width, height);
+        worldPresentation.resize(width, height);
         viewport.update(width, height);
     }
 
@@ -44,11 +44,14 @@ public class GameScreen extends ScreenAdapter {
         if (dx != 0 || dy != 0) {
             playerControls.movePlayer(dx, dy);
         }
-        worldRenderer.render();
+        if (Gdx.input.isKeyPressed(Input.Keys.R)) {
+            playerControls.reload();
+        }
+        worldPresentation.render();
         renderCrosshairs();
         if (isOneOfKeysPressed(Input.Keys.ESCAPE)) escapeCallback.run();
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            Point target = worldRenderer.convertScreenToWorld(Gdx.input.getX(), Gdx.input.getY());
+            Point target = worldPresentation.convertScreenToWorld(Gdx.input.getX(), Gdx.input.getY());
             playerControls.shootAt(target.x, target.y);
         }
     }
