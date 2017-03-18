@@ -2,7 +2,9 @@ package com.tearulez.dudes.model;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.tearulez.dudes.*;
+import com.badlogic.gdx.utils.Array;
+import com.tearulez.dudes.Network;
+import com.tearulez.dudes.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.tearulez.dudes.Assertions.*;
+import static com.tearulez.dudes.Assertions.assertState;
 
 public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
@@ -108,8 +110,28 @@ public class GameModel {
     }
 
     private void checkInvariants() {
+        if (log.isTraceEnabled()) {
+            Array<Body> bodies = new Array<>();
+            world.getBodies(bodies);
+            int players = 0;
+            int bullets = 0;
+            for (Body body : bodies) {
+                Object o = body.getUserData();
+                if (o instanceof PlayerId) {
+                    players += 1;
+                }
+                if (o instanceof Bullet) {
+                    bullets += 1;
+                }
+            }
+            log.trace(
+                    "world body count {}, players {}, bullets {}, walls {}",
+                    world.getBodyCount(), players, bullets, walls.size()
+            );
+        }
+
         assertState(
-                world.getBodyCount() < playerBodies.size() + walls.size() + MAX_BULLET_COUNT,
+                world.getBodyCount() <= playerBodies.size() + walls.size() + MAX_BULLET_COUNT,
                 "world body count is less than players count + walls count + max bullet count"
         );
     }
