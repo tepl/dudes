@@ -15,8 +15,7 @@ public class Network {
     // This registers objects that are going to be sent over the network.
     public static void register(EndPoint endPoint) {
         Kryo kryo = endPoint.getKryo();
-        kryo.register(Login.class);
-        kryo.register(Respawned.class);
+        kryo.register(SpawnResponse.class);
         kryo.register(UpdateModel.class);
         kryo.register(MovePlayer.class);
         kryo.register(HashMap.class);
@@ -27,14 +26,12 @@ public class Network {
         kryo.register(ShootAt.class);
         kryo.register(Player.class);
         kryo.register(PlayerDeath.class);
-        kryo.register(RespawnRequest.class);
+        kryo.register(SpawnRequest.class);
         kryo.register(Reload.class);
     }
 
-    public static class Login {
-    }
-
-    public static class Respawned {
+    public static class SpawnResponse {
+        public boolean success;
     }
 
     public static class UpdateModel {
@@ -52,7 +49,7 @@ public class Network {
     public static class PlayerDeath {
     }
 
-    public static class RespawnRequest {
+    public static class SpawnRequest {
         public Point startingPosition;
     }
 

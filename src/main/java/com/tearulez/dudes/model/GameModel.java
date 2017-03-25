@@ -44,6 +44,9 @@ public class GameModel {
     private ArrayList<Wall> walls = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
+    private List<Integer> spawnedPlayers = new ArrayList<>();
+    private List<Integer> failedToSpawnPlayers = new ArrayList<>();
+
     private boolean wasShot = false;
     private boolean wasDryFire = false;
     private boolean wasReloading = false;
@@ -81,6 +84,7 @@ public class GameModel {
             FixtureDef fixtureDef = new FixtureDef();
             fixtureDef.shape = polygonShape;
             fixtureDef.density = 1f;
+            body.setUserData(wall);
             body.createFixture(fixtureDef);
 
             polygonShape.dispose();
@@ -92,14 +96,14 @@ public class GameModel {
         return playerBodies.containsKey(playerId);
     }
 
-    public void nextStep(Map<Integer, Point> newPlayers,
+    public void nextStep(Map<Integer, Point> spawnRequests,
                          List<Integer> playersToRemove,
                          Map<Integer, Network.MovePlayer> moveActions,
                          Map<Integer, Network.ShootAt> shootActions,
                          Set<Integer> reloadingPlayers) {
         checkInvariants();
         cleanUp();
-        processNewPlayers(newPlayers);
+        processSpawnRequests(spawnRequests);
         playersToRemove.forEach(this::removePlayer);
         processMoveActions(moveActions);
         processShootActions(shootActions);
@@ -157,26 +161,56 @@ public class GameModel {
 
     private void cleanUp() {
         killedPlayers.clear();
+        spawnedPlayers.clear();
+        failedToSpawnPlayers.clear();
         wasShot = false;
         wasDryFire = false;
         wasReloading = false;
     }
 
-    private void processNewPlayers(Map<Integer, Point> newPlayers) {
-        for (Map.Entry<Integer, Point> player : newPlayers.entrySet()) {
-            Integer playerId = player.getKey();
+    private void processSpawnRequests(Map<Integer, Point> spawnRequests) {
+        for (Map.Entry<Integer, Point> request : spawnRequests.entrySet()) {
+            Integer playerId = request.getKey();
             if (isPlayerPresent(playerId)) {
                 log.warn("Ignoring new player, playerId: {}", playerId);
                 continue;
             }
-            log.debug("Add new player: {}", playerId);
-            Point position = player.getValue();
-            Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2(position.x, position.y));
-            body.setUserData(PlayerId.create(playerId));
-            playerBodies.put(playerId, body);
-            playerHealths.put(playerId, Player.MAX_HEALTH);
-            magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
+            Point spawnPoint = request.getValue();
+            Vector2 spawnPosition = new Vector2(spawnPoint.x, spawnPoint.y);
+            boolean spawnAllowed = true;
+            for (Body body : playerBodies.values()) {
+                Vector2 playerPosition = body.getPosition();
+                if (!isWallOnLine(spawnPosition, playerPosition)) {
+                    spawnAllowed = false;
+                    break;
+                }
+            }
+            if (spawnAllowed) {
+                log.debug("Add new player: {}", playerId);
+                Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2(spawnPoint.x, spawnPoint.y));
+                body.setUserData(PlayerId.create(playerId));
+                playerBodies.put(playerId, body);
+                playerHealths.put(playerId, Player.MAX_HEALTH);
+                magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
+                spawnedPlayers.add(playerId);
+            } else {
+                failedToSpawnPlayers.add(playerId);
+            }
         }
+    }
+
+    private boolean isWallOnLine(Vector2 from, Vector2 to) {
+        boolean[] wallPresent = new boolean[1];
+        RayCastCallback rayCastCallback = (fixture, point, normal, fraction) -> {
+            float returnValue = -1;
+            if (fixture.getBody().getUserData() instanceof Wall) {
+                wallPresent[0] = true;
+                returnValue = 0;
+            }
+            return returnValue;
+        };
+        world.rayCast(rayCastCallback, from, to);
+        return wallPresent[0];
     }
 
     private void removePlayer(int playerId) {
@@ -334,6 +368,15 @@ public class GameModel {
 
     public List<Integer> getKilledPlayers() {
         return killedPlayers;
+    }
+
+
+    public List<Integer> getSpawnedPlayers() {
+        return spawnedPlayers;
+    }
+
+    public List<Integer> getFailedToSpawnPlayers() {
+        return failedToSpawnPlayers;
     }
 
     public boolean wasShot() {

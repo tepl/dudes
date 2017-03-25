@@ -5,26 +5,34 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.Point;
-import com.tearulez.dudes.RespawnControls;
+import com.tearulez.dudes.SpawnControls;
 
 import static com.tearulez.dudes.screens.ScreenUtils.isOneOfKeysPressed;
 
-public class RespawnScreen extends ScreenAdapter {
+public class SpawnScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 1;
-    private static final float RESPAWN_CIRCLE_RADIUS = 0.01f;
+    private static final float MOUSE_CURSOR_RADIUS = 0.01f;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Viewport viewport;
     private final WorldPresentation worldPresentation;
-    private final RespawnControls respawnControls;
+    private final SpawnControls spawnControls;
+    private final String text;
+    private final Batch batch = new SpriteBatch();
+    private final BitmapFont font = new BitmapFont();
 
-    public RespawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, RespawnControls respawnControls) {
+    public SpawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, SpawnControls spawnControls, String text) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.worldPresentation = worldPresentation;
-        this.respawnControls = respawnControls;
+        this.spawnControls = spawnControls;
+        this.text = text;
+        font.setColor(Color.BLACK);
     }
 
     @Override
@@ -34,7 +42,7 @@ public class RespawnScreen extends ScreenAdapter {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 Point point = worldPresentation.convertScreenToWorld(screenX, screenY);
-                respawnControls.respawnAt(point);
+                spawnControls.spawnAt(point);
                 return true;
             }
         });
@@ -56,8 +64,9 @@ public class RespawnScreen extends ScreenAdapter {
     public void render(float delta) {
         keyboardPanning();
         mousePanning();
+        worldPresentation.render();
         renderText();
-        renderRespawnPoint();
+        renderSpawnPoint();
     }
 
     private void keyboardPanning() {
@@ -87,15 +96,17 @@ public class RespawnScreen extends ScreenAdapter {
     }
 
     private void renderText() {
-        worldPresentation.render();
+        batch.begin();
+        font.draw(batch, text, 100, 100);
+        batch.end();
     }
 
-    private void renderRespawnPoint() {
+    private void renderSpawnPoint() {
         Vector3 p = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.circle(p.x, p.y, RESPAWN_CIRCLE_RADIUS, 8);
+        shapeRenderer.circle(p.x, p.y, MOUSE_CURSOR_RADIUS, 8);
         shapeRenderer.end();
     }
 

@@ -45,27 +45,26 @@ public class DudesGame extends Game {
 
     private MenuScreen createDeathScreen() {
         List<MenuItem> menuItems = Arrays.asList(
-                new MenuItem("Respawn", () -> setScreen(createRespawnScreen())),
+                new MenuItem("Respawn", () -> setScreen(createSpawnScreen("Choose a spawn point"))),
                 new MenuItem("Exit", this::exit)
         );
         return new MenuScreen(viewportFactory, menuItems, worldPresentation);
     }
 
-    private RespawnScreen createRespawnScreen() {
-        return new RespawnScreen(viewportFactory, worldPresentation, this::respawn);
+    private SpawnScreen createSpawnScreen(String s) {
+        return new SpawnScreen(viewportFactory, worldPresentation, gameClient::spawnAt, s);
     }
 
     void onPlayerDeath() {
         addDelayedAction(() -> setScreen(createDeathScreen()));
     }
 
-    void onPlayerRespawn() {
-        addDelayedAction(() -> setScreen(createGameScreen()));
-    }
-
-    private void respawn(Point point) {
-        gameClient.respawnAt(point);
-        setScreen(new LoadingScreen("Respawning"));
+    void onPlayerSpawn(boolean success) {
+        if (success) {
+            addDelayedAction(() -> setScreen(createGameScreen()));
+        } else {
+            addDelayedAction(() -> setScreen(createSpawnScreen("Choose another point, because you are in the line of sight of another player")));
+        }
     }
 
     @Override
@@ -77,7 +76,7 @@ public class DudesGame extends Game {
         viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
         worldPresentation = new WorldPresentation(viewportFactory, () -> stateSnapshot, soundSettings);
         gameClient.init(this);
-        setScreen(new LoadingScreen("Connecting"));
+        setScreen(createSpawnScreen("Choose a spawn point"));
     }
 
     @Override

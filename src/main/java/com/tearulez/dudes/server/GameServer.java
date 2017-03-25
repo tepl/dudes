@@ -27,7 +27,7 @@ class GameServer {
     private final GameModel gameModel;
     private final Server server;
     private int nextPlayerId;
-    private Map<Integer, Point> newPlayers = new HashMap<>();
+    private Map<Integer, Point> spawnRequests = new HashMap<>();
     private List<Integer> playersToRemove = new ArrayList<>();
 
     private GameServer(GameModel gameModel, Server server) {
@@ -40,29 +40,30 @@ class GameServer {
         // registered by the same method for both the client and server.
         Network.register(server);
         server.addListener(new Listener() {
+            @Override
+            public void connected(Connection connection) {
+                ((PlayerConnection) connection).playerId = registerNewPlayer();
+            }
+
+            @Override
             public void received(Connection c, Object object) {
                 PlayerConnection connection = (PlayerConnection) c;
 
-                if (object instanceof Network.Login) {
-                    Network.Respawned respawned = new Network.Respawned();
-                    connection.playerId = registerNewPlayer();
-                    server.sendToTCP(c.getID(), respawned);
-                } else if (object instanceof Network.MovePlayer) {
+                if (object instanceof Network.MovePlayer) {
                     Network.MovePlayer action = (Network.MovePlayer) object;
                     connection.acceptMoveAction(action);
                 } else if (object instanceof Network.ShootAt) {
                     Network.ShootAt action = (Network.ShootAt) object;
                     connection.acceptShootAction(action);
-                } else if (object instanceof Network.RespawnRequest) {
-                    Network.RespawnRequest action = (Network.RespawnRequest) object;
-                    addPlayer(connection.playerId, action.startingPosition);
-                    Network.Respawned respawned = new Network.Respawned();
-                    server.sendToTCP(c.getID(), respawned);
+                } else if (object instanceof Network.SpawnRequest) {
+                    Network.SpawnRequest action = (Network.SpawnRequest) object;
+                    spawnPlayer(connection.playerId, action.startingPosition);
                 } else if (object instanceof Network.Reload) {
                     connection.acceptReloadAction((Network.Reload) object);
                 }
             }
 
+            @Override
             public void disconnected(Connection c) {
                 int playerId = ((PlayerConnection) c).playerId;
                 removePlayer(playerId);
@@ -73,12 +74,11 @@ class GameServer {
     private synchronized int registerNewPlayer() {
         int playerId = nextPlayerId;
         nextPlayerId += 1;
-        addPlayer(playerId, Point.create(0, 0));
         return playerId;
     }
 
-    private synchronized void addPlayer(int playerId, Point startingPosition) {
-        newPlayers.put(playerId, startingPosition);
+    private synchronized void spawnPlayer(int playerId, Point startingPosition) {
+        spawnRequests.put(playerId, startingPosition);
     }
 
     private synchronized void removePlayer(int playerId) {
@@ -94,13 +94,25 @@ class GameServer {
                     HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
                     HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
-                    gameModel.nextStep(newPlayers, playersToRemove, moveActions, shootActions, reloadingPlayers);
-                    newPlayers.clear();
+                    gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
+                    spawnRequests.clear();
                     playersToRemove.clear();
                 }
                 log.debug("sending updated model to clients");
 
                 sendStateSnapshots();
+
+                Network.SpawnResponse spawnResponse = new Network.SpawnResponse();
+                spawnResponse.success = true;
+                for (Integer playerId : gameModel.getSpawnedPlayers()) {
+                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
+                    server.sendToTCP(playerConnection.getID(), spawnResponse);
+                }
+                spawnResponse.success = false;
+                for (Integer playerId : gameModel.getFailedToSpawnPlayers()) {
+                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
+                    server.sendToTCP(playerConnection.getID(), spawnResponse);
+                }
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
                 for (Integer playerId : gameModel.getKilledPlayers()) {

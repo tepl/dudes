@@ -27,14 +27,13 @@ class GameClient implements PlayerControls {
 
         // ThreadedListener runs the listener methods on a different thread.
         client.addListener(new Listener.ThreadedListener(new Listener() {
-            public void connected(Connection connection) {
-                client.sendTCP(new Network.Login());
-            }
 
+            @Override
             public void received(Connection connection, Object object) {
-                // Player registered
-                if (object instanceof Network.Respawned) {
-                    game.onPlayerRespawn();
+                // Spawn response
+                if (object instanceof Network.SpawnResponse) {
+                    Network.SpawnResponse spawnResponse = (Network.SpawnResponse) object;
+                    game.onPlayerSpawn(spawnResponse.success);
                 }
 
                 // Update received
@@ -49,6 +48,7 @@ class GameClient implements PlayerControls {
                 }
             }
 
+            @Override
             public void disconnected(Connection connection) {
                 System.out.println("Disconnected from server");
                 Gdx.app.exit();
@@ -86,9 +86,9 @@ class GameClient implements PlayerControls {
         client.close();
     }
 
-    void respawnAt(Point point) {
-        Network.RespawnRequest respawnRequest = new Network.RespawnRequest();
-        respawnRequest.startingPosition = point;
-        client.sendTCP(respawnRequest);
+    void spawnAt(Point point) {
+        Network.SpawnRequest spawnRequest = new Network.SpawnRequest();
+        spawnRequest.startingPosition = point;
+        client.sendTCP(spawnRequest);
     }
 }
