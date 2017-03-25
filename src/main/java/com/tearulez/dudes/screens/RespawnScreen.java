@@ -17,8 +17,6 @@ public class RespawnScreen extends ScreenAdapter {
     private final Viewport viewport;
     private final WorldPresentation worldPresentation;
     private final RespawnControls respawnControls;
-    private int mouseX;
-    private int mouseY;
 
     public RespawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, RespawnControls respawnControls) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
@@ -29,12 +27,6 @@ public class RespawnScreen extends ScreenAdapter {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(new InputAdapter() {
-            @Override
-            public boolean mouseMoved(int screenX, int screenY) {
-                mouseX = screenX;
-                mouseY = screenY;
-                return true;
-            }
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
@@ -68,7 +60,7 @@ public class RespawnScreen extends ScreenAdapter {
     }
 
     private void renderRespawnPoint() {
-        Vector3 p = viewport.unproject(new Vector3(mouseX, mouseY, 0));
+        Vector3 p = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.GREEN);
