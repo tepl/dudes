@@ -10,6 +10,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.PlayerControls;
 import com.tearulez.dudes.Point;
 
+import static com.tearulez.dudes.screens.ScreenUtils.isOneOfKeysPressed;
+
 
 public class GameScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 1;
@@ -35,8 +37,8 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
-        int dx = 0;
-        int dy = 0;
+        float dx = 0;
+        float dy = 0;
         if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
         if (isOneOfKeysPressed(Input.Keys.RIGHT, Input.Keys.D)) dx += 1;
         if (isOneOfKeysPressed(Input.Keys.UP, Input.Keys.W)) dy += 1;
@@ -54,15 +56,6 @@ public class GameScreen extends ScreenAdapter {
             Point target = worldPresentation.convertScreenToWorld(Gdx.input.getX(), Gdx.input.getY());
             playerControls.shootAt(target.x, target.y);
         }
-    }
-
-    private boolean isOneOfKeysPressed(int... keys) {
-        for (int key : keys) {
-            if (Gdx.input.isKeyPressed(key)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void renderCrosshairs() {

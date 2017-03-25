@@ -1,6 +1,7 @@
 package com.tearulez.dudes.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -9,6 +10,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.Point;
 import com.tearulez.dudes.RespawnControls;
+
+import static com.tearulez.dudes.screens.ScreenUtils.isOneOfKeysPressed;
 
 public class RespawnScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 1;
@@ -51,8 +54,36 @@ public class RespawnScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
+        keyboardPanning();
+        mousePanning();
         renderText();
         renderRespawnPoint();
+    }
+
+    private void keyboardPanning() {
+        float dx = 0;
+        float dy = 0;
+        if (isOneOfKeysPressed(Input.Keys.LEFT, Input.Keys.A)) dx -= 1;
+        if (isOneOfKeysPressed(Input.Keys.RIGHT, Input.Keys.D)) dx += 1;
+        if (isOneOfKeysPressed(Input.Keys.UP, Input.Keys.W)) dy += 1;
+        if (isOneOfKeysPressed(Input.Keys.DOWN, Input.Keys.S)) dy -= 1;
+        if (dx != 0 || dy != 0) {
+            worldPresentation.translate(dx, dy);
+        }
+    }
+
+    private void mousePanning() {
+        float dx = 0;
+        float dy = 0;
+        int x = Gdx.input.getX();
+        int y = Gdx.input.getY();
+        if (x == Gdx.graphics.getWidth() - 1) dx = 1;
+        if (x == 0) dx = -1;
+        if (y == Gdx.graphics.getHeight() - 1) dy = -1;
+        if (y == 0) dy = 1;
+        if (dx != 0 || dy != 0) {
+            worldPresentation.translate(dx, dy);
+        }
     }
 
     private void renderText() {

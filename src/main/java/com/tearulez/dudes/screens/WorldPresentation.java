@@ -47,8 +47,6 @@ public class WorldPresentation {
         if (stateSnapshot.getPlayer().isPresent()) {
             Point playerPosition = stateSnapshot.getPlayer().get().getPosition();
             cam.position.set(playerPosition.x, playerPosition.y, 0);
-        } else {
-            cam.position.set(0, 0, 0);
         }
         cam.update();
         shapeRenderer.setProjectionMatrix(cam.combined);
@@ -137,5 +135,9 @@ public class WorldPresentation {
         shotSound.dispose();
         reloadingSound.dispose();
         dryFireSound.dispose();
+    }
+
+    void translate(float dx, float dy) {
+        viewport.getCamera().translate(dx, dy, 0);
     }
 }
