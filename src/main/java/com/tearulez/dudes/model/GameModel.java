@@ -41,7 +41,7 @@ public class GameModel {
     private Queue<Body> bulletBodies = new ArrayDeque<>();
 
     private World world;
-    private ArrayList<Wall> walls = new ArrayList<>();
+    private List<Wall> walls = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
     private List<Integer> spawnedPlayers = new ArrayList<>();
@@ -57,7 +57,7 @@ public class GameModel {
         this.world = world;
     }
 
-    public static GameModel create(ArrayList<Wall> walls) {
+    public static GameModel create(List<Wall> walls) {
         World world = new World(new Vector2(0, 0), true);
 
         GameModel gameModel = new GameModel(world);
@@ -346,7 +346,7 @@ public class GameModel {
         return players;
     }
 
-    public ArrayList<Wall> getWalls() {
+    public List<Wall> getWalls() {
         return walls;
     }
 

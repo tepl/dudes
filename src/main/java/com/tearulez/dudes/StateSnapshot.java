@@ -16,6 +16,27 @@ public class StateSnapshot {
     private boolean wasReload;
     private boolean wasShot;
 
+    static class Builder {
+        private List<Wall> walls = Collections.emptyList();
+
+        Builder setWalls(List<Wall> walls) {
+            this.walls = walls;
+            return this;
+        }
+
+        StateSnapshot build() {
+            return create(
+                    Optional.empty(),
+                    Collections.emptyList(),
+                    walls,
+                    Collections.emptyList(),
+                    false,
+                    false,
+                    false
+            );
+        }
+    }
+
     private StateSnapshot() {
     }
 

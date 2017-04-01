@@ -4,15 +4,17 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
-import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.Network;
 import com.tearulez.dudes.Point;
 import com.tearulez.dudes.StateSnapshot;
+import com.tearulez.dudes.SvgMap;
+import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -204,45 +206,8 @@ class GameServer {
         server.start();
     }
 
-    private static GameServer createServer() throws IOException {
-        ArrayList<Wall> walls = new ArrayList<>();
-
-        ArrayList<Point> points1 = new ArrayList<>();
-        points1.add(Point.create(-5, -5));
-        points1.add(Point.create(5, 5));
-        points1.add(Point.create(5, -5));
-        walls.add(Wall.create(Point.create(15, -5), points1));
-
-        ArrayList<Point> points2 = new ArrayList<>();
-        points2.add(Point.create(0, 0));
-        points2.add(Point.create(0, 20));
-        points2.add(Point.create(10, 0));
-        walls.add(Wall.create(Point.create(-20, -10), points2));
-
-        ArrayList<Point> points3 = new ArrayList<>();
-        points3.add(Point.create(0, 0));
-        points3.add(Point.create(0, 5));
-        points3.add(Point.create(40, 5));
-        walls.add(Wall.create(Point.create(-20, 10), points3));
-
-        ArrayList<Point> points4 = new ArrayList<>();
-        points4.add(Point.create(80, 40));
-        points4.add(Point.create(0, 10));
-        points4.add(Point.create(40, 0));
-        walls.add(Wall.create(Point.create(-20, -30), points4));
-
-        ArrayList<Point> points5 = new ArrayList<>();
-        points5.add(Point.create(20, 40));
-        points5.add(Point.create(10, 40));
-        points5.add(Point.create(50, 0));
-        walls.add(Wall.create(Point.create(-20, 10), points5));
-
-        ArrayList<Point> points6 = new ArrayList<>();
-        points6.add(Point.create(15, 20));
-        points6.add(Point.create(20, 10));
-        points6.add(Point.create(40, 0));
-        walls.add(Wall.create(Point.create(20, 10), points6));
-
+    private static GameServer createServer() throws Exception {
+        List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
         GameModel gameModel = GameModel.create(walls);
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
@@ -252,7 +217,7 @@ class GameServer {
         return new GameServer(gameModel, server);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         Log.INFO();
         GameServer gameServer = GameServer.createServer();
         gameServer.initListener();

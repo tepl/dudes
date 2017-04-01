@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="640" height="480.00000000000006" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+
+ <g>
+  <title>Layer 1</title>
+  <polygon stroke-width="5" stroke="#000000" points="535.389892578125,323 501.2623291015625,369.9725646972656 446.0427551269531,352.0306396484375 446.0427551269531,293.9693603515625 501.2623291015625,276.02745056152344 535.389892578125,323 " strokeWidth="5" strokecolor="#000000" fill="#FF0000" edge="58.06127" orient="x" sides="5" shape="regularPoly" id="svg_1" cy="220" cx="102"/>
+  <polygon transform="rotate(-31.1259, 160.758, 346)" stroke-width="5" stroke="#000000" points="186.8831787109375,346 166.92538452148438,373.46954345703125 134.63299560546875,362.97711181640625 134.63299560546875,329.02288818359375 166.92538452148438,318.53045654296875 186.8831787109375,346 " strokeWidth="5" strokecolor="#000000" fill="#FF0000" edge="33.954218" orient="x" sides="5" shape="regularPoly" id="svg_2" cy="221" cx="100"/>
+  <rect id="svg_4" height="46" width="429" y="405" x="117" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <rect transform="rotate(42.6282, 357, 170)" id="svg_5" height="254" width="64" y="43" x="325" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <ellipse ry="6.570312" rx="6.570312" id="player_circle" cy="340.023438" cx="269.16406" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <rect id="svg_7" height="193" width="38" y="67.888889" x="87.666672" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <rect id="svg_8" height="39" width="100" y="107" x="168" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <rect id="svg_9" height="177.000003" width="133.999996" y="233.277782" x="-122.111105" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <rect transform="rotate(-21.4312, 654.222, 152)" id="svg_10" height="180.555551" width="45.111109" y="61.722228" x="631.666668" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" stroke="#000000" fill="#FF0000"/>
+  <polygon stroke-width="5" stroke="#000000" points="314.0890350341797,-71.11111068725586 278.8641357421875,-22.62820053100586 221.8690643310547,-41.14702224731445 221.8690643310547,-101.07519149780273 278.8641357421875,-119.59402084350586 314.0890350341797,-71.11111068725586 " strokeWidth="5" strokecolor="#000000" fill="#FF0000" edge="59.928167" orient="x" sides="5" shape="regularPoly" id="svg_11" cy="-131.555554" cx="124.444413"/>
+ </g>
+</svg>
