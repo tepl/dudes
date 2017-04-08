@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -20,19 +19,16 @@ import java.util.List;
 
 public class MenuScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 480;
-    private static final float FONT_SCREEN_HEIGHT_FRACTION = 1 / 10f;
+    private static final float FONT_TO_SCREEN_HEIGHT_RATIO = 1 / 10f;
     private static final float BUTTON_WIDTH = 300f;
     private static final float BUTTON_HEIGHT = 100f;
     private final WorldPresentation worldPresentation;
     private final Stage stage;
     private final Texture buttonTexture = new Texture(Gdx.files.internal("images/button.png"));
-    private final NinePatchDrawable buttonDrawable = new NinePatchDrawable(
-            new NinePatch(buttonTexture, 12, 12, 12, 12)
+    private ScalableFontGenerator scalableFontGenerator = new ScalableFontGenerator(
+            "fonts/Oswald-Regular.ttf",
+            FONT_TO_SCREEN_HEIGHT_RATIO
     );
-    private final FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
-            Gdx.files.internal("fonts/Oswald-Regular.ttf")
-    );
-    private BitmapFont buttonTextFont = new BitmapFont();
 
     public MenuScreen(ViewportFactory viewportFactory, List<MenuItem> menuItems, WorldPresentation worldPresentation) {
         stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
@@ -41,9 +37,16 @@ public class MenuScreen extends ScreenAdapter {
         float buttonSpace = stage.getViewport().getWorldHeight() / menuItems.size();
         float x = (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2;
         float y = VIEWPORT_HEIGHT - buttonSpace + (buttonSpace - BUTTON_HEIGHT) / 2;
-        TextButtonStyle style = new TextButtonStyle(null, null, null, buttonTextFont);
+
         for (MenuItem menuItem : menuItems) {
-            TextButton button = new TextButton(menuItem.getName(), style);
+            TextButtonStyle buttonStyle = new TextButtonStyle(
+                    new NinePatchDrawable(new NinePatch(buttonTexture, 12, 12, 12, 12)),
+                    null,
+                    null,
+                    new BitmapFont());
+            buttonStyle.fontColor = Color.BLACK;
+            TextButton button = new TextButton(menuItem.getName(), buttonStyle);
+
             button.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
@@ -70,24 +73,14 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
-        resizeFont(height);
-        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.font = buttonTextFont;
-        style.fontColor = Color.BLACK;
-        style.up = buttonDrawable;
         for (Actor actor : stage.getActors()) {
+            TextButton.TextButtonStyle style = ((TextButton) actor).getStyle();
+            style.font.dispose();
+            style.font = scalableFontGenerator.generateFont(stage.getViewport().getWorldHeight(), height);
             ((TextButton) actor).setStyle(style);
         }
         worldPresentation.resize(width, height);
         stage.getViewport().update(width, height, true);
-    }
-
-    private void resizeFont(int height) {
-        buttonTextFont.dispose();
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = (int) (FONT_SCREEN_HEIGHT_FRACTION * height);
-        buttonTextFont = generator.generateFont(parameter);
-        buttonTextFont.getData().setScale(stage.getViewport().getWorldHeight() / height);
     }
 
     @Override
@@ -98,9 +91,11 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        buttonTextFont.dispose();
+        scalableFontGenerator.dispose();
+        for (Actor actor : stage.getActors()) {
+            ((TextButton) actor).getStyle().font.dispose();
+        }
         buttonTexture.dispose();
         stage.dispose();
-        generator.dispose();
     }
 }
