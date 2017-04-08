@@ -4,10 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 class GameClient implements PlayerControls {
+    private static final Logger log = LoggerFactory.getLogger(GameClient.class);
     private final String serverHost;
     private final int serverPort;
     private Client client;
@@ -33,17 +36,20 @@ class GameClient implements PlayerControls {
                 // Spawn response
                 if (object instanceof Network.SpawnResponse) {
                     Network.SpawnResponse spawnResponse = (Network.SpawnResponse) object;
+                    log.info("onPlayerSpawn: " + spawnResponse.success);
                     game.onPlayerSpawn(spawnResponse.success);
                 }
 
                 // Update received
                 if (object instanceof Network.UpdateModel) {
                     Network.UpdateModel updateModel = (Network.UpdateModel) object;
+                    log.trace("onGameStateUpdate");
                     game.onGameStateUpdate(updateModel.stateSnapshot);
                 }
 
                 // Player died
                 if (object instanceof Network.PlayerDeath) {
+                    log.info("onPlayerDeath");
                     game.onPlayerDeath();
                 }
             }

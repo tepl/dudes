@@ -63,7 +63,7 @@ public class DudesGame extends Game {
         if (success) {
             addDelayedAction(() -> setScreen(createGameScreen()));
         } else {
-            addDelayedAction(() -> setScreen(createSpawnScreen("Choose another point, because you are in the line of sight of another player")));
+            addDelayedAction(() -> setScreen(createSpawnScreen("Cannot spawn here, because you are in the line of sight of another player")));
         }
     }
 

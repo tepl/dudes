@@ -5,10 +5,10 @@
         </encoder>
     </appender>
 
-    <logger name="com.tearulez.dudes.server.GameServer" level="INFO" />
-    <logger name="com.tearulez.dudes.model.GameModel" level="DEBUG" />
+    <logger name="com.tearulez.dudes.server.GameServer" level="INFO"/>
+    <logger name="com.tearulez.dudes.model.GameModel" level="INFO"/>
 
     <root level="debug">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

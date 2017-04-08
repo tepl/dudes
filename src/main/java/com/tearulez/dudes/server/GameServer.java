@@ -4,10 +4,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
-import com.tearulez.dudes.Network;
-import com.tearulez.dudes.Point;
-import com.tearulez.dudes.StateSnapshot;
-import com.tearulez.dudes.SvgMap;
+import com.tearulez.dudes.*;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
@@ -28,13 +25,15 @@ class GameServer {
 
     private final GameModel gameModel;
     private final Server server;
+    private final NPCEngine npcEngine;
     private int nextPlayerId;
     private Map<Integer, Point> spawnRequests = new HashMap<>();
     private List<Integer> playersToRemove = new ArrayList<>();
 
-    private GameServer(GameModel gameModel, Server server) {
+    private GameServer(GameModel gameModel, Server server, NPCEngine npcEngine) {
         this.gameModel = gameModel;
         this.server = server;
+        this.npcEngine = npcEngine;
     }
 
     private void initListener() {
@@ -93,10 +92,16 @@ class GameServer {
         Runnable runnable = () -> {
             try {
                 synchronized (GameServer.this) {
+
                     HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
                     HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
+
+                    spawnRequests.putAll(npcEngine.getSpawnRequests());
+
                     gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
+                    npcEngine.computeNextStep();
+
                     spawnRequests.clear();
                     playersToRemove.clear();
                 }
@@ -106,21 +111,23 @@ class GameServer {
 
                 Network.SpawnResponse spawnResponse = new Network.SpawnResponse();
                 spawnResponse.success = true;
-                for (Integer playerId : gameModel.getSpawnedPlayers()) {
+                gameModel.getSpawnedPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
                     PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
                     server.sendToTCP(playerConnection.getID(), spawnResponse);
-                }
+                });
+
                 spawnResponse.success = false;
-                for (Integer playerId : gameModel.getFailedToSpawnPlayers()) {
+                gameModel.getFailedToSpawnPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
                     PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
                     server.sendToTCP(playerConnection.getID(), spawnResponse);
-                }
+                });
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
-                for (Integer playerId : gameModel.getKilledPlayers()) {
+                gameModel.getKilledPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
                     PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
                     server.sendToTCP(playerConnection.getID(), death);
-                }
+                });
+
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(-1);
@@ -154,6 +161,13 @@ class GameServer {
             );
             server.sendToTCP(connection.getID(), updateModel);
         }
+    }
+
+    private boolean isRealPlayer(int id) {
+        for (PlayerConnection c : playerConnections()) {
+            if (c.playerId == id) return true;
+        }
+        return false;
     }
 
     private PlayerConnection getPlayerConnectionByPlayerId(Integer playerId) {
@@ -214,7 +228,8 @@ class GameServer {
                 return new PlayerConnection(INITIAL_MOVE_ACTION_TTL);
             }
         };
-        return new GameServer(gameModel, server);
+        Rect spawnArea = new Rect(-50, 50, -50, 50);
+        return new GameServer(gameModel, server, new NPCEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea));
     }
 
     public static void main(String[] args) throws Exception {
