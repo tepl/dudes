@@ -5,34 +5,39 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.tearulez.dudes.Point;
 import com.tearulez.dudes.SpawnControls;
 
 import static com.tearulez.dudes.screens.ScreenUtils.isOneOfKeysPressed;
 
 public class SpawnScreen extends ScreenAdapter {
-    private static final float VIEWPORT_HEIGHT = 1;
-    private static final float MOUSE_CURSOR_RADIUS = 0.01f;
+    private static final float VIEWPORT_HEIGHT = 1000;
+    private static final float FONT_TO_SCREEN_HEIGHT_RATIO = 1 / 20f;
+    private static final float MOUSE_CURSOR_RADIUS = VIEWPORT_HEIGHT / 100;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final Viewport viewport;
+    private final Stage stage;
     private final WorldPresentation worldPresentation;
     private final SpawnControls spawnControls;
-    private final String text;
-    private final Batch batch = new SpriteBatch();
-    private final BitmapFont font = new BitmapFont();
 
-    public SpawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, SpawnControls spawnControls, String text) {
-        viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
+    private ScalableFontGenerator scalableFontGenerator = new ScalableFontGenerator(
+            "fonts/Oswald-Regular.ttf",
+            FONT_TO_SCREEN_HEIGHT_RATIO
+    );
+
+    public SpawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation,
+                       SpawnControls spawnControls, String text) {
+        stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
         this.worldPresentation = worldPresentation;
         this.spawnControls = spawnControls;
-        this.text = text;
-        font.setColor(Color.BLACK);
+        Label label = new Label(text, new Label.LabelStyle(new BitmapFont(), Color.BLACK));
+        label.setPosition(200f, 200f);
+        stage.addActor(label);
     }
 
     @Override
@@ -46,7 +51,6 @@ public class SpawnScreen extends ScreenAdapter {
                 return true;
             }
         });
-
     }
 
     @Override
@@ -56,8 +60,14 @@ public class SpawnScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
+        for (Actor actor : stage.getActors()) {
+            Label.LabelStyle style = ((Label) actor).getStyle();
+            style.font.dispose();
+            style.font = scalableFontGenerator.generateFont(stage.getViewport().getWorldHeight(), height);
+            ((Label) actor).setStyle(style);
+        }
         worldPresentation.resize(width, height);
-        viewport.update(width, height);
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -65,7 +75,7 @@ public class SpawnScreen extends ScreenAdapter {
         keyboardPanning();
         mousePanning();
         worldPresentation.render();
-        renderText();
+        stage.draw();
         renderSpawnPoint();
     }
 
@@ -95,19 +105,21 @@ public class SpawnScreen extends ScreenAdapter {
         }
     }
 
-    private void renderText() {
-        batch.begin();
-        font.draw(batch, text, 100, 100);
-        batch.end();
-    }
-
     private void renderSpawnPoint() {
-        Vector3 p = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
-        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        Vector3 p = stage.getViewport().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        shapeRenderer.setProjectionMatrix(stage.getViewport().getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.GREEN);
         shapeRenderer.circle(p.x, p.y, MOUSE_CURSOR_RADIUS, 8);
         shapeRenderer.end();
     }
 
+    @Override
+    public void dispose() {
+        scalableFontGenerator.dispose();
+        for (Actor actor : stage.getActors()) {
+            ((Label) actor).getStyle().font.dispose();
+        }
+        stage.dispose();
+    }
 }
