@@ -253,7 +253,7 @@ public class GameModel {
                 body.applyForceToCenter(brakingForce, true);
             } else {
                 Vector2 force = new Vector2(move.dx, move.dy);
-                force.scl(FORCE_SCALE);
+                force.nor().scl(FORCE_SCALE);
                 if (body.getLinearVelocity().len() > MAX_SPEED) {
                     Vector2 heading = body.getLinearVelocity().cpy().nor();
                     float dot = force.dot(heading);
