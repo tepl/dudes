@@ -1,5 +1,7 @@
 package com.tearulez.dudes;
 
+import com.badlogic.gdx.math.Vector2;
+
 public class Point implements Cloneable {
     public float x, y = 0;
 
@@ -11,5 +13,9 @@ public class Point implements Cloneable {
         point.x = x;
         point.y = y;
         return point;
+    }
+
+    Vector2 asVector() {
+        return new Vector2(x, y);
     }
 }

@@ -25,15 +25,15 @@ class GameServer {
 
     private final GameModel gameModel;
     private final Server server;
-    private final NPCEngine npcEngine;
+    private final AIEngine aiEngine;
     private int nextPlayerId;
     private Map<Integer, Point> spawnRequests = new HashMap<>();
     private List<Integer> playersToRemove = new ArrayList<>();
 
-    private GameServer(GameModel gameModel, Server server, NPCEngine npcEngine) {
+    private GameServer(GameModel gameModel, Server server, AIEngine aiEngine) {
         this.gameModel = gameModel;
         this.server = server;
-        this.npcEngine = npcEngine;
+        this.aiEngine = aiEngine;
     }
 
     private void initListener() {
@@ -97,10 +97,11 @@ class GameServer {
                     HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
 
-                    spawnRequests.putAll(npcEngine.getSpawnRequests());
+                    spawnRequests.putAll(aiEngine.getSpawnRequests());
+                    moveActions.putAll(aiEngine.getMoveActions());
 
                     gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
-                    npcEngine.computeNextStep();
+                    aiEngine.computeNextStep();
 
                     spawnRequests.clear();
                     playersToRemove.clear();
@@ -229,8 +230,8 @@ class GameServer {
             }
         };
         Rect spawnArea = new Rect(-50, 50, -50, 50);
-        NPCEngine npcEngine = new NPCEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea, gameModel);
-        return new GameServer(gameModel, server, npcEngine);
+        AIEngine aiEngine = new AIEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea, gameModel);
+        return new GameServer(gameModel, server, aiEngine);
     }
 
     public static void main(String[] args) throws Exception {

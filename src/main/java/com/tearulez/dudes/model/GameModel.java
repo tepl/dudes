@@ -17,7 +17,7 @@ import static com.tearulez.dudes.Assertions.assertState;
 public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
 
-    private static final int TICKS_PER_SECOND = 60;
+    public static final int TICKS_PER_SECOND = 60;
     public static final float TIME_STEP = 1.0f / TICKS_PER_SECOND;
     public static final float PLAYER_CIRCLE_RADIUS = 1;
     public static final float BULLET_CIRCLE_RADIUS = 0.2f;
