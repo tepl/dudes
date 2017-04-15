@@ -214,6 +214,12 @@ public class GameModel {
         return wallPresent[0];
     }
 
+    public float getDistanceBetweenPlayers(int playerId1, int playerId2) {
+        assertPlayerPresence(playerId1);
+        assertPlayerPresence(playerId2);
+        return getPlayerPosition(playerId1).cpy().sub(getPlayerPosition(playerId2)).len();
+    }
+
     public boolean isOnLineOfSight(int playerId1, int playerId2) {
         assertPlayerPresence(playerId1);
         assertPlayerPresence(playerId2);

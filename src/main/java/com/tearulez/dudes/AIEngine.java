@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class AIEngine {
     private static final int MAX_MOVEMENT = 3;
+    private final float VISION_DISTANCE = 25;
     private List<Integer> aiPlayerIds;
     private final Rect spawnArea;
     private final GameModel gameModel;
@@ -70,7 +71,10 @@ public class AIEngine {
 
     private Optional<Integer> getRandomOnSightPlayer(Integer id, Set<Integer> otherPlayers) {
         List<Integer> playersOnSight = otherPlayers.stream().filter(
-                otherId -> !otherId.equals(id) && gameModel.isOnLineOfSight(id, otherId)
+                otherId -> !otherId.equals(id)
+                        && gameModel.isOnLineOfSight(id, otherId)
+                        && gameModel.getDistanceBetweenPlayers(id, otherId) < VISION_DISTANCE
+
         ).collect(Collectors.toList());
         if (playersOnSight.isEmpty()) {
             return Optional.empty();
