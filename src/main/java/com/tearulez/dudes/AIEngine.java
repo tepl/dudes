@@ -14,6 +14,8 @@ public class AIEngine {
     private final GameModel gameModel;
     private Map<Integer, Point> spawnRequests = new HashMap<>();
     private Map<Integer, Network.MovePlayer> moveActions = new HashMap<>();
+    private Map<Integer, Network.ShootAt> shootActions = new HashMap<>();
+    private Set<Integer> reloadingPlayers = new HashSet<>();
     private Map<Integer, Movement> movements = new HashMap<>();
     private Random rnd = new Random();
 
@@ -36,10 +38,46 @@ public class AIEngine {
     public void computeNextStep() {
         spawnRequests.clear();
         moveActions.clear();
+        shootActions.clear();
+        reloadingPlayers.clear();
         getDeadAIPlayerIds().forEach(
                 id -> spawnRequests.put(id, spawnArea.getRandomPoint())
         );
         createMoveActions();
+        createShootAndReloadActions();
+    }
+
+    private void createShootAndReloadActions() {
+        Map<Integer, Player> players = gameModel.getPlayers();
+        getAliveAIPlayers().forEach((id, player) -> {
+            Optional<Integer> randomPlayer = getRandomOnSightPlayer(id, players.keySet());
+            randomPlayer.ifPresent(target ->
+                    shootAtOrReload(id, players.get(target).getPosition())
+            );
+        });
+    }
+
+    private void shootAtOrReload(Integer id, Point targetPoint) {
+        if (gameModel.isMagazineEmpty(id)) {
+            reloadingPlayers.add(id);
+        } else {
+            Network.ShootAt shootAction = new Network.ShootAt();
+            shootAction.x = targetPoint.x;
+            shootAction.y = targetPoint.y;
+            shootActions.put(id, shootAction);
+        }
+    }
+
+    private Optional<Integer> getRandomOnSightPlayer(Integer id, Set<Integer> otherPlayers) {
+        List<Integer> playersOnSight = otherPlayers.stream().filter(
+                otherId -> !otherId.equals(id) && gameModel.isOnLineOfSight(id, otherId)
+        ).collect(Collectors.toList());
+        if (playersOnSight.isEmpty()) {
+            return Optional.empty();
+        } else {
+            int randomPlayer = playersOnSight.get(rnd.nextInt(playersOnSight.size()));
+            return Optional.of(randomPlayer);
+        }
     }
 
     private List<Integer> getDeadAIPlayerIds() {
@@ -93,5 +131,13 @@ public class AIEngine {
 
     public Map<Integer, Network.MovePlayer> getMoveActions() {
         return moveActions;
+    }
+
+    public Map<Integer, Network.ShootAt> getShootActions() {
+        return shootActions;
+    }
+
+    public Set<Integer> getReloadingPlayers() {
+        return reloadingPlayers;
     }
 }

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.tearulez.dudes.Assertions.assertState;
+import static com.tearulez.dudes.Assertions.require;
 
 public class GameModel {
     private static final Logger log = LoggerFactory.getLogger(GameModel.class);
@@ -211,6 +212,28 @@ public class GameModel {
         };
         world.rayCast(rayCastCallback, from, to);
         return wallPresent[0];
+    }
+
+    public boolean isOnLineOfSight(int playerId1, int playerId2) {
+        assertPlayerPresence(playerId1);
+        assertPlayerPresence(playerId2);
+        return !isWallOnLine(
+                getPlayerPosition(playerId1),
+                getPlayerPosition(playerId2)
+        );
+    }
+
+    private Vector2 getPlayerPosition(int playerId) {
+        return playerBodies.get(playerId).getPosition();
+    }
+
+    private void assertPlayerPresence(int playerId) {
+        require(isPlayerPresent(playerId), "player " + playerId + " should be present");
+    }
+
+    public boolean isMagazineEmpty(int playerId) {
+        assertPlayerPresence(playerId);
+        return magazineAmmoCounts.get(playerId).equals(0);
     }
 
     private void removePlayer(int playerId) {

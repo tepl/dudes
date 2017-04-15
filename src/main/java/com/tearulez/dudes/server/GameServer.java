@@ -99,6 +99,8 @@ class GameServer {
 
                     spawnRequests.putAll(aiEngine.getSpawnRequests());
                     moveActions.putAll(aiEngine.getMoveActions());
+                    shootActions.putAll(aiEngine.getShootActions());
+                    reloadingPlayers.addAll(aiEngine.getReloadingPlayers());
 
                     gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
                     aiEngine.computeNextStep();
