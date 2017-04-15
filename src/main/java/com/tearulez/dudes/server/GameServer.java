@@ -229,7 +229,8 @@ class GameServer {
             }
         };
         Rect spawnArea = new Rect(-50, 50, -50, 50);
-        return new GameServer(gameModel, server, new NPCEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea));
+        NPCEngine npcEngine = new NPCEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea, gameModel);
+        return new GameServer(gameModel, server, npcEngine);
     }
 
     public static void main(String[] args) throws Exception {
