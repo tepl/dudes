@@ -7,12 +7,11 @@ import com.tearulez.dudes.model.GameModelConfig;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class ConfigServer {
     private static final String CONFIG_PLACEHOLDER = "DEFAULT_CONFIG";
@@ -40,8 +39,9 @@ class ConfigServer {
         public void handle(HttpExchange t) throws IOException {
             String response;
             try {
-                byte[] bytes = Files.readAllBytes(Paths.get(getClass().getResource("/config.html").toURI()));
-                response = new String(bytes);
+                InputStream inputStream = ConfigServer.class.getResource("/config.html").openStream();
+                Stream<String> lines = new BufferedReader(new InputStreamReader(inputStream)).lines();
+                response = lines.collect(Collectors.joining("\n"));
             } catch (Exception e) {
                 e.printStackTrace();
                 // HttpServer swallows exception, so we return
