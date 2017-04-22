@@ -12,7 +12,7 @@ public class Config {
     private Properties properties;
 
     public Config() {
-        try (FileInputStream fileInput = new FileInputStream(new File("config"))) {
+        try (FileInputStream fileInput = new FileInputStream(new File("config.properties"))) {
             properties = new Properties();
             properties.load(fileInput);
             fileInput.close();
