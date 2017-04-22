@@ -11,7 +11,6 @@ import java.util.*;
 public class DudesGame extends Game {
     private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
     private final GameClient gameClient;
-    private List<Runnable> delayedActions = new ArrayList<>();
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
     private WorldPresentation worldPresentation = null;
     private ViewportFactory viewportFactory;
@@ -23,12 +22,8 @@ public class DudesGame extends Game {
         this.gameClient = gameClient;
     }
 
-    private synchronized void addDelayedAction(Runnable action) {
-        delayedActions.add(action);
-    }
-
     void onGameStateUpdate(StateSnapshot stateSnapshot) {
-        addDelayedAction(() -> this.stateSnapshot = stateSnapshot);
+        Gdx.app.postRunnable(() -> this.stateSnapshot = stateSnapshot);
     }
 
     private GameScreen createGameScreen() {
@@ -62,14 +57,14 @@ public class DudesGame extends Game {
     }
 
     void onPlayerDeath() {
-        addDelayedAction(() -> setScreen(createDeathScreen()));
+        Gdx.app.postRunnable(() -> setScreen(createDeathScreen()));
     }
 
     void onPlayerSpawn(boolean success) {
         if (success) {
-            addDelayedAction(() -> setScreen(createGameScreen()));
+            Gdx.app.postRunnable(() -> setScreen(createGameScreen()));
         } else {
-            addDelayedAction(() -> setScreen(createSpawnScreen("Cannot spawn here, because you are in the line of sight of another player")));
+            Gdx.app.postRunnable(() -> setScreen(createSpawnScreen("Cannot spawn here, because you are in the line of sight of another player")));
         }
     }
 
@@ -83,15 +78,6 @@ public class DudesGame extends Game {
         worldPresentation = new WorldPresentation(viewportFactory, () -> stateSnapshot, soundSettings);
         gameClient.init(this);
         setScreen(createSpawnScreen("Choose a spawn point"));
-    }
-
-    @Override
-    public synchronized void render() {
-        for (Runnable action : delayedActions) {
-            action.run();
-        }
-        delayedActions.clear();
-        super.render();
     }
 
     @Override
