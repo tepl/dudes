@@ -41,7 +41,7 @@ public class GameModel {
     private Queue<Body> bulletBodies = new ArrayDeque<>();
 
     private final World world;
-    private final Config config;
+    private final GameModelConfig gameModelConfig;
     private List<Wall> walls = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
@@ -54,15 +54,15 @@ public class GameModel {
 
     private long currentTick = 0;
 
-    private GameModel(World world, Config config) {
+    private GameModel(World world, GameModelConfig gameModelConfig) {
         this.world = world;
-        this.config = config;
+        this.gameModelConfig = gameModelConfig;
     }
 
-    public static GameModel create(List<Wall> walls, Config config) {
+    public static GameModel create(List<Wall> walls, GameModelConfig gameModelConfig) {
         World world = new World(new Vector2(0, 0), true);
 
-        GameModel gameModel = new GameModel(world, config);
+        GameModel gameModel = new GameModel(world, gameModelConfig);
         world.setContactListener(gameModel.new ListenerClass());
         gameModel.walls = walls;
         for (Wall wall : walls) {
@@ -183,7 +183,7 @@ public class GameModel {
             for (Body body : playerBodies.values()) {
                 Vector2 playerPosition = body.getPosition();
                 if (!isWallOnLine(spawnPosition, playerPosition)
-                        && spawnPosition.cpy().sub(playerPosition).len() < config.getMinSpawnDistance()) {
+                        && spawnPosition.cpy().sub(playerPosition).len() < gameModelConfig.getMinSpawnDistance()) {
                     spawnAllowed = false;
                     break;
                 }
@@ -194,7 +194,7 @@ public class GameModel {
                 body.setUserData(PlayerId.create(playerId));
                 playerBodies.put(playerId, body);
                 playerHealths.put(playerId, Player.MAX_HEALTH);
-                magazineAmmoCounts.put(playerId, config.getMagazineSize());
+                magazineAmmoCounts.put(playerId, gameModelConfig.getMagazineSize());
                 spawnedPlayers.add(playerId);
             } else {
                 failedToSpawnPlayers.add(playerId);
@@ -338,7 +338,7 @@ public class GameModel {
             Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
             Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
             bullet.setUserData(new Bullet());
-            Vector2 bulletVelocity = aim.cpy().scl(config.getBulletSpeed());
+            Vector2 bulletVelocity = aim.cpy().scl(gameModelConfig.getBulletSpeed());
             bullet.setLinearVelocity(bulletVelocity);
             bulletBodies.add(bullet);
             if (bulletBodies.size() > MAX_BULLET_COUNT) {
@@ -354,7 +354,7 @@ public class GameModel {
             if (isPlayerReloading(playerId)) {
                 continue;
             }
-            magazineAmmoCounts.put(playerId, config.getMagazineSize());
+            magazineAmmoCounts.put(playerId, gameModelConfig.getMagazineSize());
             previousReloadActionTicks.put(playerId, currentTick);
             wasReloading = true;
         }

@@ -5,7 +5,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.tearulez.dudes.*;
-import com.tearulez.dudes.model.Config;
+import com.tearulez.dudes.model.GameModelConfig;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
@@ -224,9 +224,9 @@ class GameServer {
         server.start();
     }
 
-    private static GameServer createServer() throws Exception {
+    private static GameServer createServer(GameModelConfig gameModelConfig) throws Exception {
         List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
-        GameModel gameModel = GameModel.create(walls, new Config());
+        GameModel gameModel = GameModel.create(walls, gameModelConfig);
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
                 return new PlayerConnection(INITIAL_MOVE_ACTION_TTL);
@@ -239,9 +239,15 @@ class GameServer {
 
     public static void main(String[] args) throws Exception {
         Log.INFO();
-        GameServer gameServer = GameServer.createServer();
+
+        // Game model config server
+        ConfigServer configServer = new ConfigServer();
+        configServer.startServing(Integer.valueOf(args[0]));
+
+        // Game server
+        GameServer gameServer = GameServer.createServer(configServer.getGameModelConfig());
         gameServer.initListener();
         gameServer.startGameLoop();
-        gameServer.startServing(Integer.valueOf(args[0]));
+        gameServer.startServing(Integer.valueOf(args[1]));
     }
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dudes configuration</title>
+</head>
+<style>
+html,body {
+  height:100%;
+  width:100%;
+  margin:0;
+}
+body , body {
+  display:flex;
+}
+form {
+  margin:auto;
+}
+
+</style>
+<body>
+<form action="/save_config" id="config_form">
+    <textarea name="config" rows="20" cols="50">DEFAULT_CONFIG</textarea><br>
+    <input type="submit" value="Save config"/>
+</form>
+</body>
+</html>
