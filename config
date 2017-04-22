@@ -1,1 +1,3 @@
 minSpawnDistance=35
+bulletSpeed=15
+magazineSize=30

@@ -31,7 +31,6 @@ public class GameModel {
     private static final int FORCE_SCALE = 100;
     private static final int BREAKING_FORCE = 20;
     private static final int MIN_SHOOTING_CYCLE_IN_TICKS = TICKS_PER_SECOND / 12;
-    private static final int MAGAZINE_SIZE = 30;
     private static final int RELOAD_TIME_IN_TICKS = TICKS_PER_SECOND * 2;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
@@ -195,7 +194,7 @@ public class GameModel {
                 body.setUserData(PlayerId.create(playerId));
                 playerBodies.put(playerId, body);
                 playerHealths.put(playerId, Player.MAX_HEALTH);
-                magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
+                magazineAmmoCounts.put(playerId, config.getMagazineSize());
                 spawnedPlayers.add(playerId);
             } else {
                 failedToSpawnPlayers.add(playerId);
@@ -339,7 +338,7 @@ public class GameModel {
             Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
             Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
             bullet.setUserData(new Bullet());
-            Vector2 bulletVelocity = aim.cpy().scl(15);
+            Vector2 bulletVelocity = aim.cpy().scl(config.getBulletSpeed());
             bullet.setLinearVelocity(bulletVelocity);
             bulletBodies.add(bullet);
             if (bulletBodies.size() > MAX_BULLET_COUNT) {
@@ -355,7 +354,7 @@ public class GameModel {
             if (isPlayerReloading(playerId)) {
                 continue;
             }
-            magazineAmmoCounts.put(playerId, MAGAZINE_SIZE);
+            magazineAmmoCounts.put(playerId, config.getMagazineSize());
             previousReloadActionTicks.put(playerId, currentTick);
             wasReloading = true;
         }

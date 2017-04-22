@@ -7,6 +7,8 @@ import java.util.Properties;
 
 public class Config {
     private static final String MIN_SPAWN_DISTANCE = "minSpawnDistance";
+    private static final String BULLET_SPEED = "bulletSpeed";
+    private static final String MAGAZINE_SIZE = "magazineSize";
     private Properties properties;
 
     public Config() {
@@ -21,5 +23,13 @@ public class Config {
 
     float getMinSpawnDistance() {
         return Float.valueOf(properties.getProperty(MIN_SPAWN_DISTANCE));
+    }
+
+    float getBulletSpeed() {
+        return Float.valueOf(properties.getProperty(BULLET_SPEED));
+    }
+
+    int getMagazineSize() {
+        return Integer.valueOf(properties.getProperty(MAGAZINE_SIZE));
     }
 }
