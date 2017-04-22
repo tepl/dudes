@@ -23,6 +23,7 @@ public class SpawnScreen extends ScreenAdapter {
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Stage stage;
     private final WorldPresentation worldPresentation;
+    private final Runnable escapeCallback;
     private final SpawnControls spawnControls;
 
     private ScalableFontGenerator scalableFontGenerator = new ScalableFontGenerator(
@@ -30,10 +31,11 @@ public class SpawnScreen extends ScreenAdapter {
             FONT_TO_SCREEN_HEIGHT_RATIO
     );
 
-    public SpawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation,
+    public SpawnScreen(ViewportFactory viewportFactory, WorldPresentation worldPresentation, Runnable escapeCallback,
                        SpawnControls spawnControls, String text) {
         stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
         this.worldPresentation = worldPresentation;
+        this.escapeCallback = escapeCallback;
         this.spawnControls = spawnControls;
         Label label = new Label(text, new Label.LabelStyle(new BitmapFont(), Color.BLACK));
         label.setPosition(200f, 200f);
@@ -49,6 +51,15 @@ public class SpawnScreen extends ScreenAdapter {
                 Point point = worldPresentation.convertScreenToWorld(screenX, screenY);
                 spawnControls.spawnAt(point);
                 return true;
+            }
+
+            @Override
+            public boolean keyUp(int keycode) {
+                if (keycode == Input.Keys.ESCAPE) {
+                    escapeCallback.run();
+                    return true;
+                }
+                return false;
             }
         });
     }

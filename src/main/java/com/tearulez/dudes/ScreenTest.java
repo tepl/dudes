@@ -26,6 +26,8 @@ public class ScreenTest {
                 setScreen(new SpawnScreen(
                         viewportFactory,
                         new WorldPresentation(viewportFactory, () -> snapshot, new SoundSettings(0)),
+                        () -> {
+                        },
                         point -> {
                         },
                         "test"

@@ -52,7 +52,13 @@ public class DudesGame extends Game {
     }
 
     private SpawnScreen createSpawnScreen(String s) {
-        return new SpawnScreen(viewportFactory, worldPresentation, gameClient::spawnAt, s);
+        return new SpawnScreen(
+                viewportFactory,
+                worldPresentation,
+                () -> setScreen(createDeathScreen()),
+                gameClient::spawnAt,
+                s
+        );
     }
 
     void onPlayerDeath() {
