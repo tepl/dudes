@@ -33,7 +33,6 @@ public class GameModel {
     private static final int MIN_SHOOTING_CYCLE_IN_TICKS = TICKS_PER_SECOND / 12;
     private static final int MAGAZINE_SIZE = 30;
     private static final int RELOAD_TIME_IN_TICKS = TICKS_PER_SECOND * 2;
-    private static final float MINIMAL_SPAWN_DISTANCE = 35;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
@@ -42,7 +41,8 @@ public class GameModel {
     private Map<Integer, Integer> magazineAmmoCounts = new HashMap<>();
     private Queue<Body> bulletBodies = new ArrayDeque<>();
 
-    private World world;
+    private final World world;
+    private final Config config;
     private List<Wall> walls = new ArrayList<>();
     private List<Integer> killedPlayers = new ArrayList<>();
     private List<PlayerBulletCollision> collisions = new ArrayList<>();
@@ -55,14 +55,15 @@ public class GameModel {
 
     private long currentTick = 0;
 
-    private GameModel(World world) {
+    private GameModel(World world, Config config) {
         this.world = world;
+        this.config = config;
     }
 
-    public static GameModel create(List<Wall> walls) {
+    public static GameModel create(List<Wall> walls, Config config) {
         World world = new World(new Vector2(0, 0), true);
 
-        GameModel gameModel = new GameModel(world);
+        GameModel gameModel = new GameModel(world, config);
         world.setContactListener(gameModel.new ListenerClass());
         gameModel.walls = walls;
         for (Wall wall : walls) {
@@ -183,7 +184,7 @@ public class GameModel {
             for (Body body : playerBodies.values()) {
                 Vector2 playerPosition = body.getPosition();
                 if (!isWallOnLine(spawnPosition, playerPosition)
-                        && spawnPosition.cpy().sub(playerPosition).len() < MINIMAL_SPAWN_DISTANCE) {
+                        && spawnPosition.cpy().sub(playerPosition).len() < config.getMinSpawnDistance()) {
                     spawnAllowed = false;
                     break;
                 }

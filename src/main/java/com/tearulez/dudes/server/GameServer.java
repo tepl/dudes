@@ -5,6 +5,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.tearulez.dudes.*;
+import com.tearulez.dudes.model.Config;
 import com.tearulez.dudes.model.GameModel;
 import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
@@ -225,7 +226,7 @@ class GameServer {
 
     private static GameServer createServer() throws Exception {
         List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
-        GameModel gameModel = GameModel.create(walls);
+        GameModel gameModel = GameModel.create(walls, new Config());
         Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
             protected Connection newConnection() {
                 return new PlayerConnection(INITIAL_MOVE_ACTION_TTL);
