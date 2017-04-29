@@ -1,58 +1,31 @@
 package com.tearulez.dudes;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryonet.EndPoint;
-import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.model.Wall;
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.Serializable;
 
 public class Network {
-    public static final int MAX_OBJECT_SIZE = 102400;
-    public static final int WRITE_BUFFER_SIZE = MAX_OBJECT_SIZE * 5;
-
-    // This registers objects that are going to be sent over the network.
-    public static void register(EndPoint endPoint) {
-        Kryo kryo = endPoint.getKryo();
-        kryo.register(SpawnResponse.class);
-        kryo.register(UpdateModel.class);
-        kryo.register(MovePlayer.class);
-        kryo.register(HashMap.class);
-        kryo.register(ArrayList.class);
-        kryo.register(Point.class);
-        kryo.register(Wall.class);
-        kryo.register(StateSnapshot.class);
-        kryo.register(ShootAt.class);
-        kryo.register(Player.class);
-        kryo.register(PlayerDeath.class);
-        kryo.register(SpawnRequest.class);
-        kryo.register(Reload.class);
-    }
-
-    public static class SpawnResponse {
+    public static class SpawnResponse implements Serializable {
         public boolean success;
     }
 
-    public static class UpdateModel {
+    public static class UpdateModel implements Serializable {
         public StateSnapshot stateSnapshot;
     }
 
-    public static class MovePlayer {
+    public static class MovePlayer implements Serializable {
         public float dx, dy;
     }
 
-    public static class ShootAt {
+    public static class ShootAt implements Serializable {
         public float x, y;
     }
 
-    public static class PlayerDeath {
+    public static class PlayerDeath implements Serializable {
     }
 
-    public static class SpawnRequest {
+    public static class SpawnRequest implements Serializable {
         public Point startingPosition;
     }
 
-    public static class Reload {
+    public static class Reload implements Serializable {
     }
 }

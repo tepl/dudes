@@ -9,8 +9,6 @@ repositories {
 project.ext.gdxVersion = "1.9.3"
 
 dependencies {
-    compile group: 'com.esotericsoftware', name: 'kryonet', version: '2.22.0-RC1'
-
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"
     compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
     compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"

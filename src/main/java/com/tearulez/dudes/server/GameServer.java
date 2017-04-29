@@ -1,20 +1,20 @@
 package com.tearulez.dudes.server;
 
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
-import com.esotericsoftware.kryonet.Server;
-import com.esotericsoftware.minlog.Log;
 import com.tearulez.dudes.*;
-import com.tearulez.dudes.model.GameModelConfig;
 import com.tearulez.dudes.model.GameModel;
+import com.tearulez.dudes.model.GameModelConfig;
 import com.tearulez.dudes.model.Player;
 import com.tearulez.dudes.model.Wall;
+import com.tearulez.dudes.networking.Connection;
+import com.tearulez.dudes.networking.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,49 +28,15 @@ class GameServer {
     private final Server server;
     private final AIEngine aiEngine;
     private int nextPlayerId;
-    private Map<Integer, Point> spawnRequests = new HashMap<>();
-    private List<Integer> playersToRemove = new ArrayList<>();
+    private final Map<Integer, Point> spawnRequests = new HashMap<>();
+    private final List<Integer> playersToRemove = new ArrayList<>();
+    private final Map<Integer, Connection> connections = new ConcurrentHashMap<>();
+    private final Map<Integer, PlayerConnection> playerConnections = new ConcurrentHashMap<>();
 
     private GameServer(GameModel gameModel, Server server, AIEngine aiEngine) {
         this.gameModel = gameModel;
         this.server = server;
         this.aiEngine = aiEngine;
-    }
-
-    private void initListener() {
-        // For consistency, the classes to be sent over the network are
-        // registered by the same method for both the client and server.
-        Network.register(server);
-        server.addListener(new Listener() {
-            @Override
-            public void connected(Connection connection) {
-                ((PlayerConnection) connection).playerId = registerNewPlayer();
-            }
-
-            @Override
-            public void received(Connection c, Object object) {
-                PlayerConnection connection = (PlayerConnection) c;
-
-                if (object instanceof Network.MovePlayer) {
-                    Network.MovePlayer action = (Network.MovePlayer) object;
-                    connection.acceptMoveAction(action);
-                } else if (object instanceof Network.ShootAt) {
-                    Network.ShootAt action = (Network.ShootAt) object;
-                    connection.acceptShootAction(action);
-                } else if (object instanceof Network.SpawnRequest) {
-                    Network.SpawnRequest action = (Network.SpawnRequest) object;
-                    spawnPlayer(connection.playerId, action.startingPosition);
-                } else if (object instanceof Network.Reload) {
-                    connection.acceptReloadAction((Network.Reload) object);
-                }
-            }
-
-            @Override
-            public void disconnected(Connection c) {
-                int playerId = ((PlayerConnection) c).playerId;
-                removePlayer(playerId);
-            }
-        });
     }
 
     private synchronized int registerNewPlayer() {
@@ -83,17 +49,13 @@ class GameServer {
         spawnRequests.put(playerId, startingPosition);
     }
 
-    private synchronized void removePlayer(int playerId) {
-        playersToRemove.add(playerId);
-    }
-
     private void startGameLoop() {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         log.info("Starting game loop");
         Runnable runnable = () -> {
             try {
                 synchronized (GameServer.this) {
-
+                    readFromAllClients();
                     HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
                     HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
@@ -102,6 +64,8 @@ class GameServer {
                     moveActions.putAll(aiEngine.getMoveActions());
                     shootActions.putAll(aiEngine.getShootActions());
                     reloadingPlayers.addAll(aiEngine.getReloadingPlayers());
+
+                    cleanupConnections();
 
                     gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
                     aiEngine.computeNextStep();
@@ -115,22 +79,19 @@ class GameServer {
 
                 Network.SpawnResponse spawnResponse = new Network.SpawnResponse();
                 spawnResponse.success = true;
-                gameModel.getSpawnedPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
-                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
-                    server.sendToTCP(playerConnection.getID(), spawnResponse);
-                });
+                gameModel.getSpawnedPlayers().stream().filter(this::isRealPlayer).forEach(
+                        playerId -> sendMessageToClient(playerId, spawnResponse)
+                );
 
                 spawnResponse.success = false;
-                gameModel.getFailedToSpawnPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
-                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
-                    server.sendToTCP(playerConnection.getID(), spawnResponse);
-                });
+                gameModel.getFailedToSpawnPlayers().stream().filter(this::isRealPlayer).forEach(
+                        playerId -> sendMessageToClient(playerId, spawnResponse)
+                );
 
                 Network.PlayerDeath death = new Network.PlayerDeath();
-                gameModel.getKilledPlayers().stream().filter(this::isRealPlayer).forEach(playerId -> {
-                    PlayerConnection playerConnection = getPlayerConnectionByPlayerId(playerId);
-                    server.sendToTCP(playerConnection.getID(), death);
-                });
+                gameModel.getKilledPlayers().stream().filter(this::isRealPlayer).forEach(
+                        playerId -> sendMessageToClient(playerId, death)
+                );
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -145,12 +106,50 @@ class GameServer {
         );
     }
 
+    private void cleanupConnections() throws IOException {
+        for (Integer playerId : playersToRemove) {
+            connections.remove(playerId).close();
+            playerConnections.remove(playerId);
+        }
+    }
+
+    private void readFromAllClients() {
+        connections.forEach((playerId, connection) -> {
+            try {
+                processClientMessages(playerId, connection.receive());
+            } catch (IOException e) {
+                removePlayer(playerId);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        });
+    }
+
+    private void processClientMessages(int playerId, List<Object> messages) {
+        PlayerConnection connection = playerConnections.get(playerId);
+        for (Object object : messages) {
+            if (object instanceof Network.MovePlayer) {
+                Network.MovePlayer action = (Network.MovePlayer) object;
+                connection.acceptMoveAction(action);
+            } else if (object instanceof Network.ShootAt) {
+                Network.ShootAt action = (Network.ShootAt) object;
+                connection.acceptShootAction(action);
+            } else if (object instanceof Network.SpawnRequest) {
+                Network.SpawnRequest action = (Network.SpawnRequest) object;
+                spawnPlayer(connection.playerId, action.startingPosition);
+            } else if (object instanceof Network.Reload) {
+                connection.acceptReloadAction((Network.Reload) object);
+            }
+        }
+    }
+
     private void sendStateSnapshots() {
         Map<Integer, Player> players = gameModel.getPlayers();
-        for (PlayerConnection connection : playerConnections()) {
-            Optional<Player> player = Optional.ofNullable(players.get(connection.playerId));
+        connections.keySet().forEach((Integer playerId) -> {
+            Optional<Player> player = Optional.ofNullable(players.get(playerId));
             List<Player> otherPlayers = players.entrySet().stream()
-                    .filter(entry -> entry.getKey() != connection.playerId)
+                    .filter(entry -> !entry.getKey().equals(playerId))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
             Network.UpdateModel updateModel = new Network.UpdateModel();
@@ -163,8 +162,21 @@ class GameServer {
                     gameModel.wasReloading(),
                     gameModel.wasShot()
             );
-            server.sendToTCP(connection.getID(), updateModel);
+            sendMessageToClient(playerId, updateModel);
+        });
+    }
+
+    private void sendMessageToClient(Integer playerId, Object updateModel) {
+        try {
+            connections.get(playerId).send(updateModel);
+        } catch (IOException e) {
+            removePlayer(playerId);
+            e.printStackTrace();
         }
+    }
+
+    private void removePlayer(Integer playerId) {
+        playersToRemove.add(playerId);
     }
 
     private boolean isRealPlayer(int id) {
@@ -174,19 +186,8 @@ class GameServer {
         return false;
     }
 
-    private PlayerConnection getPlayerConnectionByPlayerId(Integer playerId) {
-        for (PlayerConnection connection : playerConnections()) {
-            if (connection.playerId == playerId) {
-                return connection;
-            }
-        }
-        throw new IllegalArgumentException("no player connection for player id: " + playerId);
-    }
-
     private Collection<PlayerConnection> playerConnections() {
-        return Arrays.stream(server.getConnections())
-                .map(PlayerConnection.class::cast)
-                .collect(Collectors.toList());
+        return playerConnections.values();
     }
 
     private HashMap<Integer, Network.MovePlayer> collectMoveActions() {
@@ -221,32 +222,34 @@ class GameServer {
 
     private void startServing(int port) throws IOException {
         server.bind(port);
-        server.start();
+        while (true) {
+            try {
+                Connection connection = server.accept();
+                int playerId = registerNewPlayer();
+                connections.put(playerId, connection);
+                playerConnections.put(playerId, new PlayerConnection(INITIAL_MOVE_ACTION_TTL));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static GameServer createServer(GameModelConfig gameModelConfig) throws Exception {
         List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
         GameModel gameModel = GameModel.create(walls, gameModelConfig);
-        Server server = new Server(Network.WRITE_BUFFER_SIZE, Network.MAX_OBJECT_SIZE) {
-            protected Connection newConnection() {
-                return new PlayerConnection(INITIAL_MOVE_ACTION_TTL);
-            }
-        };
+        Server server = new Server();
         Rect spawnArea = new Rect(-50, 50, -50, 50);
         AIEngine aiEngine = new AIEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea, gameModel);
         return new GameServer(gameModel, server, aiEngine);
     }
 
     public static void main(String[] args) throws Exception {
-        Log.INFO();
-
         // Game model config server
         ConfigServer configServer = new ConfigServer();
         configServer.startServing(Integer.valueOf(args[0]));
 
         // Game server
         GameServer gameServer = GameServer.createServer(configServer.getGameModelConfig());
-        gameServer.initListener();
         gameServer.startGameLoop();
         gameServer.startServing(Integer.valueOf(args[1]));
     }

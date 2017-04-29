@@ -2,9 +2,10 @@ package com.tearulez.dudes.model;
 
 import com.tearulez.dudes.Point;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Wall {
+public class Wall implements Serializable {
     private Point position;
     private List<Point> points;
 
@@ -24,5 +25,23 @@ public class Wall {
 
     public Point getPosition() {
         return position;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Wall wall = (Wall) o;
+
+        if (!position.equals(wall.position)) return false;
+        return points.equals(wall.points);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = position.hashCode();
+        result = 31 * result + points.hashCode();
+        return result;
     }
 }

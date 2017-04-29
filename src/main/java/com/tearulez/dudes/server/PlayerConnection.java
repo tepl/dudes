@@ -1,11 +1,10 @@
 package com.tearulez.dudes.server;
 
-import com.esotericsoftware.kryonet.Connection;
 import com.tearulez.dudes.Network;
 
 import java.util.Optional;
 
-class PlayerConnection extends Connection {
+class PlayerConnection {
     volatile int playerId;
     private Optional<Network.MovePlayer> bufferedMoveAction = Optional.empty();
     private final int moveActionMaxTTL;
