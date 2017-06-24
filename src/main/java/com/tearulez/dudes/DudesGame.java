@@ -3,10 +3,15 @@ package com.tearulez.dudes;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.codahale.metrics.Timer;
 import com.tearulez.dudes.screens.*;
 import org.lwjgl.input.Mouse;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.codahale.metrics.MetricRegistry.name;
+import static com.tearulez.dudes.Metrics.metrics;
 
 public class DudesGame extends Game {
     private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
@@ -17,6 +22,7 @@ public class DudesGame extends Game {
     private final SoundSettings soundSettings = new SoundSettings(
             Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))
     );
+    private final Timer renderTime = metrics.timer(name(DudesGame.class, "renderTime"));
 
     DudesGame(GameClient gameClient) {
         this.gameClient = gameClient;
@@ -98,5 +104,12 @@ public class DudesGame extends Game {
 
     private void exit() {
         Gdx.app.exit();
+    }
+
+    @Override
+    public void render() {
+        Timer.Context context = renderTime.time();
+        super.render();
+        context.stop();
     }
 }

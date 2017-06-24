@@ -8,6 +8,8 @@ public class DesktopLauncher {
         String host = args[0];
         Integer port = Integer.valueOf(args[1]);
 
+        Metrics.startReporter();
+
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.title = "Dudes";
         config.width = 800;
