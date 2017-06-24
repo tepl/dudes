@@ -222,12 +222,14 @@ class GameServer {
 
     private void startServing(int port) throws IOException {
         server.bind(port);
+        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 Connection connection = server.accept();
                 int playerId = registerNewPlayer();
                 connections.put(playerId, connection);
-                playerConnections.put(playerId, new PlayerConnection(INITIAL_MOVE_ACTION_TTL));
+                PlayerConnection conn = new PlayerConnection(INITIAL_MOVE_ACTION_TTL, playerId);
+                playerConnections.put(playerId, conn);
             } catch (IOException e) {
                 e.printStackTrace();
             }

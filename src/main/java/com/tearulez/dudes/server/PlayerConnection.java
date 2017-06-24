@@ -5,14 +5,15 @@ import com.tearulez.dudes.Network;
 import java.util.Optional;
 
 class PlayerConnection {
-    volatile int playerId;
+    final int playerId;
     private Optional<Network.MovePlayer> bufferedMoveAction = Optional.empty();
     private final int moveActionMaxTTL;
     private int moveActionTTL = 0;
     private Optional<Network.ShootAt> bufferedShootAction = Optional.empty();
     private Optional<Network.Reload> bufferedReloadAction = Optional.empty();
 
-    PlayerConnection(int moveActionMaxTTL) {
+    PlayerConnection(int moveActionMaxTTL, int playerId) {
+        this.playerId = playerId;
         if (moveActionMaxTTL <= 0) {
             throw new IllegalArgumentException("action TTL must be greater than zero");
         }
