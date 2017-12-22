@@ -3,7 +3,7 @@ package com.tearulez.dudes.server;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.tearulez.dudes.model.GameModelConfig;
+import com.tearulez.dudes.server.engine.GameModelConfig;
 
 import java.io.*;
 import java.net.InetSocketAddress;

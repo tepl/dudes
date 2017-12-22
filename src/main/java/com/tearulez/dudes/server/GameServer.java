@@ -1,16 +1,19 @@
 package com.tearulez.dudes.server;
 
-import com.tearulez.dudes.*;
-import com.tearulez.dudes.model.GameModel;
-import com.tearulez.dudes.model.GameModelConfig;
-import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.model.Wall;
-import com.tearulez.dudes.networking.Connection;
-import com.tearulez.dudes.networking.Server;
+import com.tearulez.dudes.common.Messages;
+import com.tearulez.dudes.common.networking.Connection;
+import com.tearulez.dudes.common.networking.Server;
+import com.tearulez.dudes.common.snapshot.Player;
+import com.tearulez.dudes.common.snapshot.Point;
+import com.tearulez.dudes.common.snapshot.StateSnapshot;
+import com.tearulez.dudes.common.snapshot.Wall;
+import com.tearulez.dudes.server.engine.AIEngine;
+import com.tearulez.dudes.server.engine.GameModel;
+import com.tearulez.dudes.server.engine.GameModelConfig;
+import com.tearulez.dudes.server.engine.Rect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -56,8 +59,8 @@ class GameServer {
             try {
                 synchronized (GameServer.this) {
                     readFromAllClients();
-                    HashMap<Integer, Network.MovePlayer> moveActions = collectMoveActions();
-                    HashMap<Integer, Network.ShootAt> shootActions = collectShootActions();
+                    HashMap<Integer, Messages.MovePlayer> moveActions = collectMoveActions();
+                    HashMap<Integer, Messages.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
 
                     spawnRequests.putAll(aiEngine.getSpawnRequests());
@@ -77,7 +80,7 @@ class GameServer {
 
                 sendStateSnapshots();
 
-                Network.SpawnResponse spawnResponse = new Network.SpawnResponse();
+                Messages.SpawnResponse spawnResponse = new Messages.SpawnResponse();
                 spawnResponse.success = true;
                 gameModel.getSpawnedPlayers().stream().filter(this::isRealPlayer).forEach(
                         playerId -> sendMessageToClient(playerId, spawnResponse)
@@ -88,7 +91,7 @@ class GameServer {
                         playerId -> sendMessageToClient(playerId, spawnResponse)
                 );
 
-                Network.PlayerDeath death = new Network.PlayerDeath();
+                Messages.PlayerDeath death = new Messages.PlayerDeath();
                 gameModel.getKilledPlayers().stream().filter(this::isRealPlayer).forEach(
                         playerId -> sendMessageToClient(playerId, death)
                 );
@@ -129,17 +132,17 @@ class GameServer {
     private void processClientMessages(int playerId, List<Object> messages) {
         PlayerConnection connection = playerConnections.get(playerId);
         for (Object object : messages) {
-            if (object instanceof Network.MovePlayer) {
-                Network.MovePlayer action = (Network.MovePlayer) object;
+            if (object instanceof Messages.MovePlayer) {
+                Messages.MovePlayer action = (Messages.MovePlayer) object;
                 connection.acceptMoveAction(action);
-            } else if (object instanceof Network.ShootAt) {
-                Network.ShootAt action = (Network.ShootAt) object;
+            } else if (object instanceof Messages.ShootAt) {
+                Messages.ShootAt action = (Messages.ShootAt) object;
                 connection.acceptShootAction(action);
-            } else if (object instanceof Network.SpawnRequest) {
-                Network.SpawnRequest action = (Network.SpawnRequest) object;
+            } else if (object instanceof Messages.SpawnRequest) {
+                Messages.SpawnRequest action = (Messages.SpawnRequest) object;
                 spawnPlayer(connection.playerId, action.startingPosition);
-            } else if (object instanceof Network.Reload) {
-                connection.acceptReloadAction((Network.Reload) object);
+            } else if (object instanceof Messages.Reload) {
+                connection.acceptReloadAction((Messages.Reload) object);
             }
         }
     }
@@ -152,7 +155,7 @@ class GameServer {
                     .filter(entry -> !entry.getKey().equals(playerId))
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
-            Network.UpdateModel updateModel = new Network.UpdateModel();
+            Messages.UpdateModel updateModel = new Messages.UpdateModel();
             updateModel.stateSnapshot = StateSnapshot.create(
                     player,
                     otherPlayers,
@@ -160,7 +163,9 @@ class GameServer {
                     gameModel.getBulletPositions(),
                     gameModel.wasDryFire(),
                     gameModel.wasReloading(),
-                    gameModel.wasShot()
+                    gameModel.wasShot(),
+                    GameModel.BULLET_CIRCLE_RADIUS,
+                    GameModel.PLAYER_CIRCLE_RADIUS
             );
             sendMessageToClient(playerId, updateModel);
         });
@@ -190,8 +195,8 @@ class GameServer {
         return playerConnections.values();
     }
 
-    private HashMap<Integer, Network.MovePlayer> collectMoveActions() {
-        HashMap<Integer, Network.MovePlayer> moveActions = new HashMap<>();
+    private HashMap<Integer, Messages.MovePlayer> collectMoveActions() {
+        HashMap<Integer, Messages.MovePlayer> moveActions = new HashMap<>();
         for (PlayerConnection connection : playerConnections()) {
             connection.moveAction().ifPresent(
                     movePlayer -> moveActions.put(connection.playerId, movePlayer)
@@ -200,8 +205,8 @@ class GameServer {
         return moveActions;
     }
 
-    private HashMap<Integer, Network.ShootAt> collectShootActions() {
-        HashMap<Integer, Network.ShootAt> shootActions = new HashMap<>();
+    private HashMap<Integer, Messages.ShootAt> collectShootActions() {
+        HashMap<Integer, Messages.ShootAt> shootActions = new HashMap<>();
         for (PlayerConnection connection : playerConnections()) {
             connection.shootAction().ifPresent(
                     shootAction -> shootActions.put(connection.playerId, shootAction)

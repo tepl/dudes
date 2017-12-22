@@ -1,7 +1,10 @@
 package com.tearulez.dudes;
 
-import com.tearulez.dudes.model.Player;
-import com.tearulez.dudes.model.Wall;
+import com.tearulez.dudes.common.Messages;
+import com.tearulez.dudes.common.snapshot.Player;
+import com.tearulez.dudes.common.snapshot.Point;
+import com.tearulez.dudes.common.snapshot.StateSnapshot;
+import com.tearulez.dudes.common.snapshot.Wall;
 import org.junit.Test;
 
 import java.io.*;
@@ -14,7 +17,7 @@ public class NetworkingSerializationTest {
 
     @Test
     public void updateModelMessage() throws Exception {
-        Network.UpdateModel msg = new Network.UpdateModel();
+        Messages.UpdateModel msg = new Messages.UpdateModel();
         msg.stateSnapshot = new StateSnapshot.Builder()
                 .setWalls(Collections.singletonList(
                         Wall.create(
@@ -36,8 +39,8 @@ public class NetworkingSerializationTest {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(buffer);
         out.writeObject(msg);
-        Network.UpdateModel deserializedMsg =
-                (Network.UpdateModel) new ObjectInputStream(
+        Messages.UpdateModel deserializedMsg =
+                (Messages.UpdateModel) new ObjectInputStream(
                         new ByteArrayInputStream(buffer.toByteArray())
                 ).readObject();
         assertEquals(msg.stateSnapshot, deserializedMsg.stateSnapshot);

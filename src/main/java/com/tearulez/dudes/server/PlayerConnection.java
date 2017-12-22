@@ -1,16 +1,16 @@
 package com.tearulez.dudes.server;
 
-import com.tearulez.dudes.Network;
+import com.tearulez.dudes.common.Messages;
 
 import java.util.Optional;
 
 class PlayerConnection {
     final int playerId;
-    private Optional<Network.MovePlayer> bufferedMoveAction = Optional.empty();
+    private Optional<Messages.MovePlayer> bufferedMoveAction = Optional.empty();
     private final int moveActionMaxTTL;
     private int moveActionTTL = 0;
-    private Optional<Network.ShootAt> bufferedShootAction = Optional.empty();
-    private Optional<Network.Reload> bufferedReloadAction = Optional.empty();
+    private Optional<Messages.ShootAt> bufferedShootAction = Optional.empty();
+    private Optional<Messages.Reload> bufferedReloadAction = Optional.empty();
 
     PlayerConnection(int moveActionMaxTTL, int playerId) {
         this.playerId = playerId;
@@ -20,7 +20,7 @@ class PlayerConnection {
         this.moveActionMaxTTL = moveActionMaxTTL;
     }
 
-    synchronized Optional<Network.MovePlayer> moveAction() {
+    synchronized Optional<Messages.MovePlayer> moveAction() {
         if (moveActionTTL > 0) {
             moveActionTTL -= 1;
             return bufferedMoveAction;
@@ -29,27 +29,27 @@ class PlayerConnection {
         }
     }
 
-    synchronized void acceptMoveAction(Network.MovePlayer moveAction) {
+    synchronized void acceptMoveAction(Messages.MovePlayer moveAction) {
         bufferedMoveAction = Optional.of(moveAction);
         moveActionTTL = moveActionMaxTTL;
     }
 
-    synchronized Optional<Network.ShootAt> shootAction() {
-        Optional<Network.ShootAt> action = bufferedShootAction;
+    synchronized Optional<Messages.ShootAt> shootAction() {
+        Optional<Messages.ShootAt> action = bufferedShootAction;
         bufferedShootAction = Optional.empty();
         return action;
     }
 
-    synchronized void acceptShootAction(Network.ShootAt shootAction) {
+    synchronized void acceptShootAction(Messages.ShootAt shootAction) {
         bufferedShootAction = Optional.of(shootAction);
     }
 
-    synchronized void acceptReloadAction(Network.Reload reloadAction) {
+    synchronized void acceptReloadAction(Messages.Reload reloadAction) {
         bufferedReloadAction = Optional.of(reloadAction);
     }
 
-    synchronized Optional<Network.Reload> reloadAction() {
-        Optional<Network.Reload> action = bufferedReloadAction;
+    synchronized Optional<Messages.Reload> reloadAction() {
+        Optional<Messages.Reload> action = bufferedReloadAction;
         bufferedReloadAction = Optional.empty();
         return action;
     }
