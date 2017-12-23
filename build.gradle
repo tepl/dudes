@@ -51,6 +51,4 @@ task deploy(type: Exec) {
 
 launch4j {
     mainClassName = 'com.tearulez.dudes.client.DesktopLauncher'
-    cmdLine = 'localhost 1234'
-    variables = [ 'DUDES_SOUND_VOLUME=0.2' ]
 }
