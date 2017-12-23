@@ -1,10 +1,20 @@
-apply plugin: 'java'
-
-version = '1.0'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'edu.sc.seis.gradle:launch4j:2.4.2'
+    }
+}
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
+
+apply plugin: 'java'
+apply plugin: 'edu.sc.seis.launch4j'
+
+version = '1.0'
 
 project.ext.gdxVersion = "1.9.3"
 
@@ -37,4 +47,10 @@ task pack(type: Copy) {
 task deploy(type: Exec) {
     dependsOn pack
     commandLine 'rsync', '-rv', "$buildDir/output/lib/", 'dudes@docean:lib/'
+}
+
+launch4j {
+    mainClassName = 'com.tearulez.dudes.client.DesktopLauncher'
+    cmdLine = 'localhost 1234'
+    variables = [ 'DUDES_SOUND_VOLUME=0.2' ]
 }
