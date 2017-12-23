@@ -24,9 +24,9 @@ public class MenuScreen extends ScreenAdapter {
     private static final float BUTTON_HEIGHT = 100f;
     private final WorldPresentation worldPresentation;
     private final Stage stage;
-    private final Texture buttonTexture = new Texture(Gdx.files.internal("images/button.png"));
+    private final Texture buttonTexture = new Texture(Gdx.files.internal("res/images/button.png"));
     private ScalableFontGenerator scalableFontGenerator = new ScalableFontGenerator(
-            "fonts/Oswald-Regular.ttf",
+            "res/fonts/Oswald-Regular.ttf",
             FONT_TO_SCREEN_HEIGHT_RATIO
     );
 

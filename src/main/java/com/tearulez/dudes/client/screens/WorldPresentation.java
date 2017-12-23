@@ -25,9 +25,9 @@ public class WorldPresentation {
     private final SoundSettings soundSettings;
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Viewport viewport;
-    private Sound dryFireSound = Gdx.audio.newSound(Gdx.files.internal("sounds/dryfire.mp3"));
-    private Sound reloadingSound = Gdx.audio.newSound(Gdx.files.internal("sounds/reload.mp3"));
-    private Sound shotSound = Gdx.audio.newSound(Gdx.files.internal("sounds/M4A1.mp3"));
+    private Sound dryFireSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/dryfire.mp3"));
+    private Sound reloadingSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/reload.mp3"));
+    private Sound shotSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/M4A1.mp3"));
 
 
     public WorldPresentation(ViewportFactory viewportFactory, GameState state, SoundSettings soundSettings) {

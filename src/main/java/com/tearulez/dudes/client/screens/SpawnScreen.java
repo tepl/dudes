@@ -27,7 +27,7 @@ public class SpawnScreen extends ScreenAdapter {
     private final SpawnControls spawnControls;
 
     private ScalableFontGenerator scalableFontGenerator = new ScalableFontGenerator(
-            "fonts/Oswald-Regular.ttf",
+            "res/fonts/Oswald-Regular.ttf",
             FONT_TO_SCREEN_HEIGHT_RATIO
     );
 
