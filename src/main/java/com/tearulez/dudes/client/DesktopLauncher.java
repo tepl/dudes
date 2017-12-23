@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class DesktopLauncher extends Application {
+    private static final String PROJECT_PAGE = "https://github.com/tepl/dudes";
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -25,7 +27,7 @@ public class DesktopLauncher extends Application {
         optional.ifPresent(clientConfig -> launchApplication(clientConfig.host, clientConfig.port, clientConfig.volume));
     }
 
-    private static Optional<ClientConfig> getClientConfig() {
+    private Optional<ClientConfig> getClientConfig() {
 
         // Read properties
         Properties properties;
@@ -65,6 +67,13 @@ public class DesktopLauncher extends Application {
         slider.setValue(Float.valueOf(properties.getProperty("volume")));
         grid.add(new Label("Volume:"), 0, 1);
         grid.add(slider, 1, 1);
+
+        // Project page
+        Hyperlink link = new Hyperlink();
+        link.setText(PROJECT_PAGE);
+        link.setOnAction(e -> getHostServices().showDocument(PROJECT_PAGE));
+        grid.add(new Label("Project page:"), 0, 2);
+        grid.add(link, 1, 2);
 
         // Set content
         dialog.getDialogPane().setContent(grid);
