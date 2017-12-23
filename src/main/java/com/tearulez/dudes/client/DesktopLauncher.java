@@ -1,15 +1,19 @@
 package com.tearulez.dudes.client;
 
+import com.badlogic.gdx.Files;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -42,6 +46,15 @@ public class DesktopLauncher extends Application {
         Dialog<ClientConfig> dialog = new Dialog<>();
         dialog.setTitle("Dudes");
         dialog.setHeaderText("Settings");
+
+        // Set the icon (must be included in the project).
+        try {
+            String url = Paths.get("res/icon.png").toUri().toURL().toString();
+            Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(url));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         // Set the button types.
         ButtonType connectButtonType = new ButtonType("Connect", ButtonBar.ButtonData.OK_DONE);
@@ -129,6 +142,7 @@ public class DesktopLauncher extends Application {
         config.title = "Dudes";
         config.width = 800;
         config.height = 480;
+        config.addIcon("res/icon.png", Files.FileType.Internal);
         GameClient gameClient = new GameClient(host, port);
         DudesGame game = new DudesGame(gameClient, volume);
         new LwjglApplication(game, config);

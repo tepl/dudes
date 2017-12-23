@@ -19,7 +19,10 @@ OutputBaseFilename=dudes-setup
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=none
-OutputDir=../build/setup
+OutputDir=..\build\setup
+SetupIconFile=..\res\icon.ico
+UninstallDisplayIcon={app}\dudes.exe
+UninstallDisplayName=Dudes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -32,6 +35,7 @@ Source: "..\build\launch4j\dudes.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\build\launch4j\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\res\*"; DestDir: "{app}\res"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+Source: "..\client.properties"; DestDir: "{app}"
 
 [Icons]
 Name: "{group}\Dudes"; Filename: "{app}\dudes.exe"
