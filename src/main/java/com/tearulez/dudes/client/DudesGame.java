@@ -14,18 +14,16 @@ import java.util.List;
 import static com.codahale.metrics.MetricRegistry.name;
 
 public class DudesGame extends Game {
-    private static final String DUDES_SOUND_VOLUME = "DUDES_SOUND_VOLUME";
     private final GameClient gameClient;
     private StateSnapshot stateSnapshot = StateSnapshot.empty();
     private WorldPresentation worldPresentation = null;
     private ViewportFactory viewportFactory;
-    private final SoundSettings soundSettings = new SoundSettings(
-            Float.valueOf(System.getenv().get(DUDES_SOUND_VOLUME))
-    );
+    private final SoundSettings soundSettings;
     private final Timer renderTime = Metrics.metrics.timer(name(DudesGame.class, "renderTime"));
 
-    DudesGame(GameClient gameClient) {
+    DudesGame(GameClient gameClient, float volume) {
         this.gameClient = gameClient;
+        soundSettings = new SoundSettings(volume);
     }
 
     void onGameStateUpdate(StateSnapshot stateSnapshot) {
