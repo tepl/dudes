@@ -18,7 +18,7 @@ class ConfigServer {
     private final Map<String, String> configData = new ConcurrentHashMap<>();
 
     void startServing(int port) {
-        try (FileReader fileReader = new FileReader(new File("config.properties"))) {
+        try (FileReader fileReader = new FileReader(new File("server.properties"))) {
             getConfigDataFromReader(fileReader);
         } catch (IOException e) {
             throw new RuntimeException(e);
