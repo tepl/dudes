@@ -1,5 +1,6 @@
 package com.tearulez.dudes;
 
+import com.badlogic.gdx.math.Vector2;
 import com.tearulez.dudes.common.Messages;
 import com.tearulez.dudes.common.snapshot.Player;
 import com.tearulez.dudes.common.snapshot.Point;
@@ -7,7 +8,10 @@ import com.tearulez.dudes.common.snapshot.StateSnapshot;
 import com.tearulez.dudes.common.snapshot.Wall;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -28,7 +32,11 @@ public class NetworkingSerializationTest {
                                         Point.create(0, 0)
                                 ))))
                 .setOtherPlayers(
-                        Collections.singletonList(Player.create(Point.create(0, 1), 100))
+                        Collections.singletonList(Player.create(
+                                Point.create(0, 1),
+                                new Vector2(0, 0),
+                                100
+                        ))
                 )
                 .setBullets(Arrays.asList(
                         Point.create(0, 0),

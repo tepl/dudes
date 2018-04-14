@@ -16,7 +16,7 @@ public class GameModelConfig {
         return Float.valueOf(configData.get(MIN_SPAWN_DISTANCE));
     }
 
-    float getBulletSpeed() {
+    public float getBulletSpeed() {
         return Float.valueOf(configData.get(BULLET_SPEED));
     }
 

@@ -37,4 +37,12 @@ public class Point implements Cloneable, Serializable {
         result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

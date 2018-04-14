@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class AIEngine {
     private static final int MAX_MOVEMENT = 3;
-    private final float VISION_DISTANCE = 25;
+    private final float VISION_DISTANCE = 30;
     private List<Integer> aiPlayerIds;
     private final Rect spawnArea;
     private final GameModel gameModel;
@@ -20,7 +20,7 @@ public class AIEngine {
     private Set<Integer> reloadingPlayers = new HashSet<>();
     private Map<Integer, Movement> movements = new HashMap<>();
     private Random rnd = new Random();
-
+    private LeadCalculator leadCalculator;
     private static class Movement {
         private final Vector2 direction;
         private int ticks;
@@ -31,10 +31,11 @@ public class AIEngine {
         }
     }
 
-    public AIEngine(List<Integer> aiPlayerIds, Rect spawnArea, GameModel gameModel) {
+    public AIEngine(List<Integer> aiPlayerIds, Rect spawnArea, GameModel gameModel, float bulletSpeed) {
         this.aiPlayerIds = aiPlayerIds;
         this.spawnArea = spawnArea;
         this.gameModel = gameModel;
+        leadCalculator = new LeadCalculator(bulletSpeed);
     }
 
     public void computeNextStep() {
@@ -53,13 +54,21 @@ public class AIEngine {
         Map<Integer, Player> players = gameModel.getPlayers();
         getAliveAIPlayers().forEach((id, player) -> {
             Optional<Integer> randomPlayer = getRandomOnSightPlayer(id, players.keySet());
-            randomPlayer.ifPresent(target ->
-                    shootAtOrReload(id, players.get(target).getPosition())
+            randomPlayer.ifPresent(targetId -> {
+                        Point playerPosition = players.get(id).getPosition();
+                        Player target = players.get(targetId);
+                        Vector2 aim = leadCalculator.calculateCollisionPoint(
+                                playerPosition,
+                                target.getPosition(),
+                                target.getVelocity()
+                        );
+                        shootAtOrReload(id, aim);
+                    }
             );
         });
     }
 
-    private void shootAtOrReload(Integer id, Point targetPoint) {
+    private void shootAtOrReload(Integer id, Vector2 targetPoint) {
         if (gameModel.isMagazineEmpty(id)) {
             reloadingPlayers.add(id);
         } else {
