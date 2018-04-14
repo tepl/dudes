@@ -337,7 +337,7 @@ public class GameModel {
             }
             aim.nor();
             // the offset is needed to eliminate bullet-shooter collision
-            Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
+            Vector2 offset = aim.cpy().scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
             Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
             bullet.setUserData(new Bullet());
             Vector2 bulletVelocity = aim.cpy().scl(gameModelConfig.getBulletSpeed());
