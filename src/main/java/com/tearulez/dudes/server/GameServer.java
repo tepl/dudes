@@ -246,7 +246,12 @@ class GameServer {
         GameModel gameModel = GameModel.create(walls, gameModelConfig);
         Server server = new Server();
         Rect spawnArea = new Rect(-50, 50, -50, 50);
-        AIEngine aiEngine = new AIEngine(Arrays.asList(-1, -2, -3, -4, -5), spawnArea, gameModel);
+        AIEngine aiEngine = new AIEngine(
+                Arrays.asList(-1, -2, -3, -4, -5),
+                spawnArea,
+                gameModel,
+                gameModelConfig.getBulletSpeed()
+        );
         return new GameServer(gameModel, server, aiEngine);
     }
 

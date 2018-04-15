@@ -337,7 +337,7 @@ public class GameModel {
             }
             aim.nor();
             // the offset is needed to eliminate bullet-shooter collision
-            Vector2 offset = aim.scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
+            Vector2 offset = aim.cpy().scl(PLAYER_CIRCLE_RADIUS + 3 * BULLET_CIRCLE_RADIUS);
             Body bullet = createCircleBody(BULLET_CIRCLE_RADIUS, playerPosition.cpy().add(offset));
             bullet.setUserData(new Bullet());
             Vector2 bulletVelocity = aim.cpy().scl(gameModelConfig.getBulletSpeed());
@@ -373,7 +373,8 @@ public class GameModel {
             int playerId = entry.getKey();
             Vector2 center = entry.getValue().getPosition();
             Point position = Point.create(center.x, center.y);
-            Player player = Player.create(position, playerHealths.get(playerId));
+            Vector2 velocity = entry.getValue().getLinearVelocity();
+            Player player = Player.create(position, velocity, playerHealths.get(playerId));
             players.put(playerId, player);
         }
         return players;
