@@ -18,8 +18,8 @@ public class StateSnapshot implements Serializable {
 
     public static class Builder {
         private List<Wall> walls = Collections.emptyList();
-        private List<Point> bullets;
-        private List<Player> otherPlayers;
+        private List<Point> bullets = Collections.emptyList();
+        private List<Player> otherPlayers = Collections.emptyList();
 
         public Builder setWalls(List<Wall> walls) {
             this.walls = walls;
