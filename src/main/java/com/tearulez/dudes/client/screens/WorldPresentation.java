@@ -5,14 +5,17 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.client.GameState;
-import com.tearulez.dudes.common.snapshot.Point;
 import com.tearulez.dudes.client.SoundSettings;
-import com.tearulez.dudes.common.snapshot.StateSnapshot;
 import com.tearulez.dudes.common.snapshot.Player;
+import com.tearulez.dudes.common.snapshot.Point;
+import com.tearulez.dudes.common.snapshot.StateSnapshot;
 import com.tearulez.dudes.common.snapshot.Wall;
 
 import java.util.List;
@@ -20,6 +23,8 @@ import java.util.Optional;
 
 public class WorldPresentation {
     private static final float VIEWPORT_HEIGHT = 50;
+    private static final float WORLD_SIZE = 200;
+    private static final float NUMBER_OF_TILES = 8;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
     private final SoundSettings soundSettings;
@@ -28,12 +33,15 @@ public class WorldPresentation {
     private Sound dryFireSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/dryfire.mp3"));
     private Sound reloadingSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/reload.mp3"));
     private Sound shotSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/M4A1.mp3"));
-
+    private TextureRegion grass = new TextureRegion(new Texture(Gdx.files.internal("res/images/grass.png")));
+    private SpriteBatch batch = new SpriteBatch();
 
     public WorldPresentation(ViewportFactory viewportFactory, GameState state, SoundSettings soundSettings) {
         viewport = viewportFactory.createViewport(VIEWPORT_HEIGHT);
         this.state = state;
         this.soundSettings = soundSettings;
+        grass.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        grass.setRegion(0, 0, NUMBER_OF_TILES, NUMBER_OF_TILES);
     }
 
     void resize(int width, int height) {
@@ -49,6 +57,7 @@ public class WorldPresentation {
         }
         cam.update();
         shapeRenderer.setProjectionMatrix(cam.combined);
+        batch.setProjectionMatrix(cam.combined);
 
         renderBackground();
         renderWalls(stateSnapshot.getWalls());
@@ -81,6 +90,9 @@ public class WorldPresentation {
     private void renderBackground() {
         Gdx.gl.glClearColor(1.0f, 1.0f, 1.0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        batch.begin();
+        batch.draw(grass, -WORLD_SIZE / 2, -WORLD_SIZE / 2, WORLD_SIZE, WORLD_SIZE);
+        batch.end();
     }
 
     private void renderBullets(List<Point> bullets, float bulletRadius) {
