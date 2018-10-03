@@ -1,8 +1,8 @@
 package com.tearulez.dudes.client;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.tearulez.dudes.client.screens.SpawnScreen;
 import com.tearulez.dudes.client.screens.ViewportFactory;
 import com.tearulez.dudes.client.screens.WorldPresentation;
@@ -15,11 +15,10 @@ import java.util.List;
 
 public class ScreenTest {
     public static void main(String[] args) throws Exception {
-        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        config.title = "Dudes";
-        config.width = 800;
-        config.height = 480;
-        ViewportFactory viewportFactory = new ViewportFactory(config.width / config.height);
+        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+        config.setTitle("Dudes");
+        config.setWindowSizeLimits(800, -1, 480, -1);
+        ViewportFactory viewportFactory = new ViewportFactory(800.0f / 480);
         List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
         StateSnapshot snapshot = new StateSnapshot.Builder().setWalls(walls).build();
         Game game = new Game() {
@@ -36,6 +35,6 @@ public class ScreenTest {
                 ));
             }
         };
-        new LwjglApplication(game, config);
+        new Lwjgl3Application(game, config);
     }
 }

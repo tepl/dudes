@@ -6,7 +6,6 @@ import com.badlogic.gdx.Screen;
 import com.codahale.metrics.Timer;
 import com.tearulez.dudes.client.screens.*;
 import com.tearulez.dudes.common.snapshot.StateSnapshot;
-import org.lwjgl.input.Mouse;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +74,6 @@ public class DudesGame extends Game {
     @Override
     public void create() {
         Gdx.input.setCursorCatched(true);
-        Mouse.setClipMouseCoordinatesToWindow(true);
         // We need all our Viewports to have the same aspect ratio.
         // see Viewport.apply and HdpiUtils.glViewport
         viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
