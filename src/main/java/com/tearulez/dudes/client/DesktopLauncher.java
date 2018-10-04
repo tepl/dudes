@@ -1,8 +1,8 @@
 package com.tearulez.dudes.client;
 
 import com.badlogic.gdx.Files;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -138,14 +138,15 @@ public class DesktopLauncher extends Application {
     }
 
     private static void launchApplication(String host, int port, float volume) {
-        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        config.title = "Dudes";
-        config.width = 800;
-        config.height = 480;
-        config.addIcon("res/icon.png", Files.FileType.Internal);
+        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+        config.setTitle("Dudes");
+        config.setWindowSizeLimits(800, -1, 480, -1);
+        config.setWindowIcon(Files.FileType.Internal, "res/icon.png");
         GameClient gameClient = new GameClient(host, port);
         DudesGame game = new DudesGame(gameClient, volume);
-        new LwjglApplication(game, config);
+        new Lwjgl3Application(game, config);
+        // Lwjgl3Application doesn't call System.exit after the app window is closed
+        System.exit(0);
     }
 
     private static class ClientConfig {

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.tearulez.dudes.client.ClippedMouse;
 import com.tearulez.dudes.client.PlayerControls;
 import com.tearulez.dudes.common.snapshot.Point;
 
@@ -53,13 +54,15 @@ public class GameScreen extends ScreenAdapter {
         renderCrosshairs();
         if (isOneOfKeysPressed(Input.Keys.ESCAPE)) escapeCallback.run();
         if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-            Point target = worldPresentation.convertScreenToWorld(Gdx.input.getX(), Gdx.input.getY());
+            ClippedMouse.MousePosition p = ClippedMouse.clipAndGetPosition();
+            Point target = worldPresentation.convertScreenToWorld(p.x, p.y);
             playerControls.shootAt(target.x, target.y);
         }
     }
 
     private void renderCrosshairs() {
-        Vector3 p = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        ClippedMouse.MousePosition mp = ClippedMouse.clipAndGetPosition();
+        Vector3 p = viewport.unproject(new Vector3(mp.x, mp.y, 0));
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.BLACK);

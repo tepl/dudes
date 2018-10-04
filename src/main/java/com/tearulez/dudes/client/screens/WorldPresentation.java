@@ -114,7 +114,7 @@ public class WorldPresentation {
     private void renderBullets(List<Point> bullets, float bulletRadius) {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Point bullet : bullets) {
-            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.setColor(Color.YELLOW);
             shapeRenderer.circle(bullet.x, bullet.y, bulletRadius, NUMBER_OF_CIRCLE_SEGMENTS);
         }
         shapeRenderer.end();

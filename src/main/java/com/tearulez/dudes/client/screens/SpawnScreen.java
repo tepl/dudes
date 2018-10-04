@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.tearulez.dudes.client.ClippedMouse;
 import com.tearulez.dudes.common.snapshot.Point;
 import com.tearulez.dudes.client.SpawnControls;
 
@@ -105,8 +106,9 @@ public class SpawnScreen extends ScreenAdapter {
     private void mousePanning() {
         float dx = 0;
         float dy = 0;
-        int x = Gdx.input.getX();
-        int y = Gdx.input.getY();
+        ClippedMouse.MousePosition p = ClippedMouse.clipAndGetPosition();
+        int x = p.x;
+        int y = p.y;
         if (x == Gdx.graphics.getWidth() - 1) dx = 1;
         if (x == 0) dx = -1;
         if (y == Gdx.graphics.getHeight() - 1) dy = -1;
@@ -117,7 +119,8 @@ public class SpawnScreen extends ScreenAdapter {
     }
 
     private void renderSpawnPoint() {
-        Vector3 p = stage.getViewport().unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        ClippedMouse.MousePosition mp = ClippedMouse.clipAndGetPosition();
+        Vector3 p = stage.getViewport().unproject(new Vector3(mp.x, mp.y, 0));
         shapeRenderer.setProjectionMatrix(stage.getViewport().getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.GREEN);
