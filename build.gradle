@@ -16,7 +16,7 @@ apply plugin: 'edu.sc.seis.launch4j'
 
 version = '1.0'
 
-project.ext.gdxVersion = "1.9.8"
+project.ext.gdxVersion = "1.9.9"
 
 dependencies {
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"
