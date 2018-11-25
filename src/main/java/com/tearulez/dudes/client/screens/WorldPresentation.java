@@ -21,13 +21,15 @@ import com.tearulez.dudes.common.snapshot.Point;
 import com.tearulez.dudes.common.snapshot.StateSnapshot;
 import com.tearulez.dudes.common.snapshot.Wall;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public class WorldPresentation {
     private static final float VIEWPORT_HEIGHT = 50;
     private static final float WORLD_SIZE = 200;
-    private static final float NUMBER_OF_TILES = 8;
+    private static final float NUMBER_OF_GRASS_TILES = 8;
+    private static final float METER_TO_TEXEL = 20;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
     private Viewport viewport;
@@ -54,9 +56,8 @@ public class WorldPresentation {
         // Graphics
         triangulator = new EarClippingTriangulator();
         grass.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        grass.setRegion(0, 0, NUMBER_OF_TILES, NUMBER_OF_TILES);
+        grass.setRegion(0, 0, NUMBER_OF_GRASS_TILES, NUMBER_OF_GRASS_TILES);
         roof.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        roof.setRegion(0, 0, NUMBER_OF_TILES, NUMBER_OF_TILES);
     }
 
     void resize(int width, int height) {
@@ -143,16 +144,27 @@ public class WorldPresentation {
     private void renderWalls(List<Wall> walls) {
         polyBatch.begin();
         for (Wall wall : walls) {
+            Optional<Point> xmin = wall.getPoints().stream().min(Comparator.comparingDouble(p -> p.x));
+            Optional<Point> xmax = wall.getPoints().stream().max(Comparator.comparingDouble(p -> p.x));
+            Optional<Point> ymin = wall.getPoints().stream().min(Comparator.comparingDouble(p -> p.y));
+            Optional<Point> ymax = wall.getPoints().stream().max(Comparator.comparingDouble(p -> p.y));
+            if (!xmin.isPresent() || !xmax.isPresent() || !ymin.isPresent() || !ymax.isPresent()) continue;
+            float w = (xmax.get().x - xmin.get().x) * METER_TO_TEXEL;
+            float h = (ymax.get().y - ymin.get().y) * METER_TO_TEXEL;
+            roof.setRegion(0, 0, Math.round(w), Math.round(h));
             int size = wall.getPoints().size();
-            Point position = wall.getPosition();
             float[] vertices = new float[size * 2];
             for (int i = 0; i < size; i++) {
                 Point point = wall.getPoints().get(i);
-                vertices[i * 2] = position.x + point.x;
-                vertices[i * 2 + 1] = position.y + point.y;
+                vertices[i * 2] = point.x * METER_TO_TEXEL;
+                vertices[i * 2 + 1] = point.y * METER_TO_TEXEL;
             }
             PolygonRegion polyReg = new PolygonRegion(roof, vertices, triangulator.computeTriangles(vertices).toArray());
-            polyBatch.draw(polyReg, 0, 0);
+            for (int i = 0; i < vertices.length; i++) {
+                vertices[i] = vertices[i] / METER_TO_TEXEL;
+            }
+            Point position = wall.getPosition();
+            polyBatch.draw(polyReg, position.x, position.y);
         }
         polyBatch.end();
     }
