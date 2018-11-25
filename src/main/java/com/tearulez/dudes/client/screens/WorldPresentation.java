@@ -41,10 +41,10 @@ public class WorldPresentation {
     private Sound shotSound = Gdx.audio.newSound(Gdx.files.internal("res/sounds/M4A1.mp3"));
 
     // Graphics
-    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private TextureRegion grass = new TextureRegion(new Texture(Gdx.files.internal("res/images/grass.png")));
+    private TextureRegion grassTex = new TextureRegion(new Texture(Gdx.files.internal("res/images/grass.png")));
+    private TextureRegion wallTex = new TextureRegion(new Texture(Gdx.files.internal("res/images/wall.png")));
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private SpriteBatch spriteBatch = new SpriteBatch();
-    private TextureRegion roof = new TextureRegion(new Texture(Gdx.files.internal("res/images/roof.png")));
     private PolygonSpriteBatch polyBatch = new PolygonSpriteBatch();
     private EarClippingTriangulator triangulator;
 
@@ -55,9 +55,9 @@ public class WorldPresentation {
 
         // Graphics
         triangulator = new EarClippingTriangulator();
-        grass.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        grass.setRegion(0, 0, NUMBER_OF_GRASS_TILES, NUMBER_OF_GRASS_TILES);
-        roof.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        grassTex.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        grassTex.setRegion(0, 0, NUMBER_OF_GRASS_TILES, NUMBER_OF_GRASS_TILES);
+        wallTex.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     }
 
     void resize(int width, int height) {
@@ -108,7 +108,7 @@ public class WorldPresentation {
         Gdx.gl.glClearColor(0.1f, 0.3f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         spriteBatch.begin();
-        spriteBatch.draw(grass, -WORLD_SIZE / 2, -WORLD_SIZE / 2, WORLD_SIZE, WORLD_SIZE);
+        spriteBatch.draw(grassTex, -WORLD_SIZE / 2, -WORLD_SIZE / 2, WORLD_SIZE, WORLD_SIZE);
         spriteBatch.end();
     }
 
@@ -151,7 +151,7 @@ public class WorldPresentation {
                 vertices[i * 2] = point.x;
                 vertices[i * 2 + 1] = point.y;
             }
-            PolygonRegion polyReg = new PolygonRegion(roof, vertices, triangulator.computeTriangles(vertices).toArray());
+            PolygonRegion polyReg = new PolygonRegion(wallTex, vertices, triangulator.computeTriangles(vertices).toArray());
             computeTextureCoords(polyReg);
             Point position = wall.getPosition();
             polyBatch.draw(polyReg, position.x, position.y);
