@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.EarClippingTriangulator;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.client.GameState;
@@ -21,7 +22,6 @@ import com.tearulez.dudes.common.snapshot.Point;
 import com.tearulez.dudes.common.snapshot.StateSnapshot;
 import com.tearulez.dudes.common.snapshot.Wall;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +29,7 @@ public class WorldPresentation {
     private static final float VIEWPORT_HEIGHT = 50;
     private static final float WORLD_SIZE = 200;
     private static final float NUMBER_OF_GRASS_TILES = 8;
-    private static final float METER_TO_TEXEL = 20;
+    private static final float ROOF_TILE_SIZE = 20;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
     private Viewport viewport;
@@ -144,29 +144,42 @@ public class WorldPresentation {
     private void renderWalls(List<Wall> walls) {
         polyBatch.begin();
         for (Wall wall : walls) {
-            Optional<Point> xmin = wall.getPoints().stream().min(Comparator.comparingDouble(p -> p.x));
-            Optional<Point> xmax = wall.getPoints().stream().max(Comparator.comparingDouble(p -> p.x));
-            Optional<Point> ymin = wall.getPoints().stream().min(Comparator.comparingDouble(p -> p.y));
-            Optional<Point> ymax = wall.getPoints().stream().max(Comparator.comparingDouble(p -> p.y));
-            if (!xmin.isPresent() || !xmax.isPresent() || !ymin.isPresent() || !ymax.isPresent()) continue;
-            float w = (xmax.get().x - xmin.get().x) * METER_TO_TEXEL;
-            float h = (ymax.get().y - ymin.get().y) * METER_TO_TEXEL;
-            roof.setRegion(0, 0, Math.round(w), Math.round(h));
             int size = wall.getPoints().size();
             float[] vertices = new float[size * 2];
             for (int i = 0; i < size; i++) {
                 Point point = wall.getPoints().get(i);
-                vertices[i * 2] = point.x * METER_TO_TEXEL;
-                vertices[i * 2 + 1] = point.y * METER_TO_TEXEL;
+                vertices[i * 2] = point.x;
+                vertices[i * 2 + 1] = point.y;
             }
             PolygonRegion polyReg = new PolygonRegion(roof, vertices, triangulator.computeTriangles(vertices).toArray());
-            for (int i = 0; i < vertices.length; i++) {
-                vertices[i] = vertices[i] / METER_TO_TEXEL;
-            }
+            computeTextureCoords(polyReg);
             Point position = wall.getPosition();
             polyBatch.draw(polyReg, position.x, position.y);
         }
         polyBatch.end();
+    }
+
+    private void computeTextureCoords(PolygonRegion polyReg) {
+        float[] coords = polyReg.getTextureCoords();
+        float[] vertices = polyReg.getVertices();
+        TextureRegion texReg = polyReg.getRegion();
+
+        Vector2 p0 = new Vector2(vertices[0], vertices[1]);
+        Vector2 p1 = new Vector2(vertices[2], vertices[3]);
+        Vector2 p2 = new Vector2(vertices[4], vertices[5]);
+        p2.sub(p1);
+        p1.sub(p0);
+        Vector2 p = p2.len2() < p1.len2() ? p2 : p1;
+        p.nor();
+        float cos = p.x;
+        float sin = p.y;
+
+        for (int i = 0; i < vertices.length; i += 2) {
+            float u = texReg.getU() + vertices[i] / ROOF_TILE_SIZE;
+            float v = texReg.getV() + vertices[i + 1] / ROOF_TILE_SIZE;
+            coords[i] = cos * u + sin * v;
+            coords[i + 1] = -sin * u + cos * v;
+        }
     }
 
     public void dispose() {
