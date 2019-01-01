@@ -26,6 +26,10 @@ public class Messages {
         public float dx, dy;
     }
 
+    public static class RotatePlayer implements Serializable {
+        public float angle;
+    }
+
     public static class ShootAt implements Serializable {
         public float x, y;
     }

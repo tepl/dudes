@@ -131,12 +131,20 @@ public class WorldPresentation {
     }
 
     private void renderPlayer(Player player, Color color, float playerRadius) {
+
+        // Player body
         Point position = player.getPosition();
-
-        float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
-
         shapeRenderer.setColor(color);
         shapeRenderer.circle(position.x, position.y, playerRadius, NUMBER_OF_CIRCLE_SEGMENTS);
+
+        // Direction mark
+        float angle = player.getAngle();
+        float x = position.x + (float) (playerRadius * Math.cos(angle));
+        float y = position.y + (float) (playerRadius * Math.sin(angle));
+        shapeRenderer.circle(x, y, playerRadius / 2, NUMBER_OF_CIRCLE_SEGMENTS);
+
+        // Health
+        float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
         shapeRenderer.setColor(Color.BLACK);
         shapeRenderer.circle(position.x, position.y, playerRadius * healthFactor, NUMBER_OF_CIRCLE_SEGMENTS);
     }

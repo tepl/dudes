@@ -1,5 +1,6 @@
 package com.tearulez.dudes.server.engine;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.tearulez.dudes.common.Messages;
 import com.tearulez.dudes.common.snapshot.Player;
@@ -16,11 +17,13 @@ public class AIEngine {
     private final GameModel gameModel;
     private Map<Integer, Point> spawnRequests = new HashMap<>();
     private Map<Integer, Messages.MovePlayer> moveActions = new HashMap<>();
+    private Map<Integer, Messages.RotatePlayer> rotationActions = new HashMap<>();
     private Map<Integer, Messages.ShootAt> shootActions = new HashMap<>();
     private Set<Integer> reloadingPlayers = new HashSet<>();
     private Map<Integer, Movement> movements = new HashMap<>();
     private Random rnd = new Random();
     private LeadCalculator leadCalculator;
+
     private static class Movement {
         private final Vector2 direction;
         private int ticks;
@@ -41,16 +44,17 @@ public class AIEngine {
     public void computeNextStep() {
         spawnRequests.clear();
         moveActions.clear();
+        rotationActions.clear();
         shootActions.clear();
         reloadingPlayers.clear();
         getDeadAIPlayerIds().forEach(
                 id -> spawnRequests.put(id, spawnArea.getRandomPoint())
         );
         createMoveActions();
-        createShootAndReloadActions();
+        createShootReloadRotationActions();
     }
 
-    private void createShootAndReloadActions() {
+    private void createShootReloadRotationActions() {
         Map<Integer, Player> players = gameModel.getPlayers();
         getAliveAIPlayers().forEach((id, player) -> {
             Optional<Integer> randomPlayer = getRandomOnSightPlayer(id, players.keySet());
@@ -63,6 +67,11 @@ public class AIEngine {
                                 target.getVelocity()
                         );
                         shootAtOrReload(id, aim);
+
+                        // Add rotation action
+                        Messages.RotatePlayer rotationAction = new Messages.RotatePlayer();
+                        rotationAction.angle = aim.sub(playerPosition.asVector()).angle() * MathUtils.degreesToRadians;
+                        rotationActions.put(id, rotationAction);
                     }
             );
         });
@@ -145,6 +154,10 @@ public class AIEngine {
 
     public Map<Integer, Messages.MovePlayer> getMoveActions() {
         return moveActions;
+    }
+
+    public Map<Integer, Messages.RotatePlayer> getRotationActions() {
+        return rotationActions;
     }
 
     public Map<Integer, Messages.ShootAt> getShootActions() {

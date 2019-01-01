@@ -8,15 +8,17 @@ public class Player implements Serializable {
     public static final int MAX_HEALTH = 100;
     private Point position;
     private Vector2 velocity;
+    private float angle;
     private int health;
 
     private Player() {
     }
 
-    public static Player create(Point position, Vector2 velocity, int health) {
+    public static Player create(Point position, Vector2 velocity, float angle, int health) {
         Player player = new Player();
         player.position = position;
         player.velocity = velocity;
+        player.angle = angle;
         player.health = health;
         return player;
     }
@@ -27,6 +29,10 @@ public class Player implements Serializable {
 
     public Vector2 getVelocity() {
         return velocity.cpy();
+    }
+
+    public float getAngle() {
+        return angle;
     }
 
     public int getHealth() {

@@ -35,6 +35,7 @@ public class NetworkingSerializationTest {
                         Collections.singletonList(Player.create(
                                 Point.create(0, 1),
                                 new Vector2(0, 0),
+                                0f,
                                 100
                         ))
                 )

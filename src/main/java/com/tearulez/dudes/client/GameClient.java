@@ -72,6 +72,12 @@ class GameClient implements PlayerControls {
         sendToServer(movePlayer);
     }
 
+    public void rotatePlayer(float angle) {
+        Messages.RotatePlayer rotatePlayer = new Messages.RotatePlayer();
+        rotatePlayer.angle = angle;
+        sendToServer(rotatePlayer);
+    }
+
     public void shootAt(float x, float y) {
         Messages.ShootAt shootAt = new Messages.ShootAt();
         shootAt.x = x;

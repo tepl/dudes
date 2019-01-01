@@ -2,9 +2,12 @@ package com.tearulez.dudes.client.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.tearulez.dudes.client.ClippedMouse;
@@ -28,6 +31,25 @@ public class GameScreen extends ScreenAdapter {
         this.playerControls = playerControls;
         this.escapeCallback = escapeCallback;
         this.worldPresentation = worldPresentation;
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(new InputAdapter() {
+            @Override
+            public boolean mouseMoved(int x, int y) {
+                ClippedMouse.MousePosition mp = ClippedMouse.clipAndGetPosition();
+                Vector3 p3 = viewport.unproject(new Vector3(mp.x, mp.y, 0));
+                Vector2 p2 = new Vector2(p3.x, p3.y);
+                playerControls.rotatePlayer(p2.angle() * MathUtils.degreesToRadians);
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public void hide() {
+        Gdx.input.setInputProcessor(null);
     }
 
     @Override

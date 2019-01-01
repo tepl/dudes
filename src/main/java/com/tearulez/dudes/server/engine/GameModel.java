@@ -36,6 +36,7 @@ public class GameModel {
     private static final int RELOAD_TIME_IN_TICKS = TICKS_PER_SECOND * 2;
 
     private Map<Integer, Body> playerBodies = new HashMap<>();
+    private Map<Integer, Float> playerAngles = new HashMap<>();
     private Map<Integer, Integer> playerHealths = new HashMap<>();
     private Map<Integer, Long> previousShootActionTicks = new HashMap<>();
     private Map<Integer, Long> previousReloadActionTicks = new HashMap<>();
@@ -103,6 +104,7 @@ public class GameModel {
     public void nextStep(Map<Integer, Point> spawnRequests,
                          List<Integer> playersToRemove,
                          Map<Integer, Messages.MovePlayer> moveActions,
+                         Map<Integer, Messages.RotatePlayer> rotationActions,
                          Map<Integer, Messages.ShootAt> shootActions,
                          Set<Integer> reloadingPlayers) {
         checkInvariants();
@@ -110,6 +112,7 @@ public class GameModel {
         processSpawnRequests(spawnRequests);
         playersToRemove.forEach(this::removePlayer);
         processMoveActions(moveActions);
+        processRotationActions(rotationActions);
         processShootActions(shootActions);
         processReloading(reloadingPlayers);
         world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
@@ -195,6 +198,7 @@ public class GameModel {
                 Body body = createCircleBody(PLAYER_CIRCLE_RADIUS, new Vector2(spawnPoint.x, spawnPoint.y));
                 body.setUserData(PlayerId.create(playerId));
                 playerBodies.put(playerId, body);
+                playerAngles.put(playerId, 0f);
                 playerHealths.put(playerId, Player.MAX_HEALTH);
                 magazineAmmoCounts.put(playerId, gameModelConfig.getMagazineSize());
                 spawnedPlayers.add(playerId);
@@ -255,6 +259,7 @@ public class GameModel {
         Body body = playerBodies.get(playerId);
         world.destroyBody(body);
         playerBodies.remove(playerId);
+        playerAngles.remove(playerId);
         playerHealths.remove(playerId);
         previousShootActionTicks.remove(playerId);
         previousReloadActionTicks.remove(playerId);
@@ -302,6 +307,17 @@ public class GameModel {
 
     private Iterable<Integer> getPlayerIds() {
         return playerBodies.keySet();
+    }
+
+    private void processRotationActions(Map<Integer, Messages.RotatePlayer> rotationActions) {
+        for (Map.Entry<Integer, Messages.RotatePlayer> action : rotationActions.entrySet()) {
+            int playerId = action.getKey();
+            if (!isPlayerPresent(playerId)) {
+                continue;
+            }
+            Messages.RotatePlayer rotation = action.getValue();
+            playerAngles.put(playerId, rotation.angle);
+        }
     }
 
     private void processShootActions(Map<Integer, Messages.ShootAt> shootActions) {
@@ -374,7 +390,7 @@ public class GameModel {
             Vector2 center = entry.getValue().getPosition();
             Point position = Point.create(center.x, center.y);
             Vector2 velocity = entry.getValue().getLinearVelocity();
-            Player player = Player.create(position, velocity, playerHealths.get(playerId));
+            Player player = Player.create(position, velocity, playerAngles.get(playerId), playerHealths.get(playerId));
             players.put(playerId, player);
         }
         return players;

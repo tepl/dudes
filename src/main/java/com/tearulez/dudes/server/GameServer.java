@@ -60,17 +60,19 @@ class GameServer {
                 synchronized (GameServer.this) {
                     readFromAllClients();
                     HashMap<Integer, Messages.MovePlayer> moveActions = collectMoveActions();
+                    HashMap<Integer, Messages.RotatePlayer> rotationActions = collectRotationActions();
                     HashMap<Integer, Messages.ShootAt> shootActions = collectShootActions();
                     Set<Integer> reloadingPlayers = collectReloadingPlayers();
 
                     spawnRequests.putAll(aiEngine.getSpawnRequests());
                     moveActions.putAll(aiEngine.getMoveActions());
+                    rotationActions.putAll(aiEngine.getRotationActions());
                     shootActions.putAll(aiEngine.getShootActions());
                     reloadingPlayers.addAll(aiEngine.getReloadingPlayers());
 
                     cleanupConnections();
 
-                    gameModel.nextStep(spawnRequests, playersToRemove, moveActions, shootActions, reloadingPlayers);
+                    gameModel.nextStep(spawnRequests, playersToRemove, moveActions, rotationActions, shootActions, reloadingPlayers);
                     aiEngine.computeNextStep();
 
                     spawnRequests.clear();
@@ -135,6 +137,9 @@ class GameServer {
             if (object instanceof Messages.MovePlayer) {
                 Messages.MovePlayer action = (Messages.MovePlayer) object;
                 connection.acceptMoveAction(action);
+            } else if (object instanceof Messages.RotatePlayer) {
+                Messages.RotatePlayer action = (Messages.RotatePlayer) object;
+                connection.acceptRotationAction(action);
             } else if (object instanceof Messages.ShootAt) {
                 Messages.ShootAt action = (Messages.ShootAt) object;
                 connection.acceptShootAction(action);
@@ -203,6 +208,16 @@ class GameServer {
             );
         }
         return moveActions;
+    }
+
+    private HashMap<Integer, Messages.RotatePlayer> collectRotationActions() {
+        HashMap<Integer, Messages.RotatePlayer> rotationActions = new HashMap<>();
+        for (PlayerConnection connection : playerConnections()) {
+            connection.rotationAction().ifPresent(
+                    rotatePlayer -> rotationActions.put(connection.playerId, rotatePlayer)
+            );
+        }
+        return rotationActions;
     }
 
     private HashMap<Integer, Messages.ShootAt> collectShootActions() {

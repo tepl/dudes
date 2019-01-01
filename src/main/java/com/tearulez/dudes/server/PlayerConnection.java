@@ -9,6 +9,7 @@ class PlayerConnection {
     private Optional<Messages.MovePlayer> bufferedMoveAction = Optional.empty();
     private final int moveActionMaxTTL;
     private int moveActionTTL = 0;
+    private Optional<Messages.RotatePlayer> bufferedRotationAction = Optional.empty();
     private Optional<Messages.ShootAt> bufferedShootAction = Optional.empty();
     private Optional<Messages.Reload> bufferedReloadAction = Optional.empty();
 
@@ -32,6 +33,16 @@ class PlayerConnection {
     synchronized void acceptMoveAction(Messages.MovePlayer moveAction) {
         bufferedMoveAction = Optional.of(moveAction);
         moveActionTTL = moveActionMaxTTL;
+    }
+
+    synchronized Optional<Messages.RotatePlayer> rotationAction() {
+        Optional<Messages.RotatePlayer> action = bufferedRotationAction;
+        bufferedRotationAction = Optional.empty();
+        return action;
+    }
+
+    synchronized void acceptRotationAction(Messages.RotatePlayer rotationAction) {
+        bufferedRotationAction = Optional.of(rotationAction);
     }
 
     synchronized Optional<Messages.ShootAt> shootAction() {
