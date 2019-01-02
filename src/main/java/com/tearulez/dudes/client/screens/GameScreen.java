@@ -38,11 +38,21 @@ public class GameScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean mouseMoved(int x, int y) {
+                mouseMoved();
+                return true;
+            }
+
+            @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+                mouseMoved();
+                return true;
+            }
+
+            private void mouseMoved() {
                 ClippedMouse.MousePosition mp = ClippedMouse.clipAndGetPosition();
                 Vector3 p3 = viewport.unproject(new Vector3(mp.x, mp.y, 0));
                 Vector2 p2 = new Vector2(p3.x, p3.y);
                 playerControls.rotatePlayer(p2.angle() * MathUtils.degreesToRadians);
-                return true;
             }
         });
     }
