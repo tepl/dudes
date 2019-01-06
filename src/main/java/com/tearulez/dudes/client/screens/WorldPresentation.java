@@ -6,12 +6,10 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.PolygonRegion;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.EarClippingTriangulator;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -43,6 +41,7 @@ public class WorldPresentation {
     // Graphics
     private TextureRegion grassTex = new TextureRegion(new Texture(Gdx.files.internal("res/images/grass.png")));
     private TextureRegion wallTex = new TextureRegion(new Texture(Gdx.files.internal("res/images/wall.png")));
+    private Sprite playerSprite = new Sprite(new Texture(Gdx.files.internal("res/images/dude.png")));
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private SpriteBatch spriteBatch = new SpriteBatch();
     private PolygonSpriteBatch polyBatch = new PolygonSpriteBatch();
@@ -122,31 +121,42 @@ public class WorldPresentation {
     }
 
     private void renderPlayers(Optional<Player> playerOpt, List<Player> otherPlayers, float playerRadius) {
+
+        // Render player sprites
+        spriteBatch.begin();
+        for (Player otherPlayer : otherPlayers) {
+            renderPlayerSprite(otherPlayer, Color.RED, playerRadius);
+        }
+        playerOpt.ifPresent(player -> renderPlayerSprite(player, Color.GREEN, playerRadius));
+        spriteBatch.end();
+
+        // Render player healths
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Player otherPlayer : otherPlayers) {
-            renderPlayer(otherPlayer, Color.RED, playerRadius);
+            renderPlayerHealth(otherPlayer, playerRadius);
         }
-        playerOpt.ifPresent(player -> renderPlayer(player, Color.GREEN, playerRadius));
+        playerOpt.ifPresent(player -> renderPlayerHealth(player, playerRadius));
         shapeRenderer.end();
     }
 
-    private void renderPlayer(Player player, Color color, float playerRadius) {
-
-        // Player body
+    private void renderPlayerSprite(Player player, Color color, float playerRadius) {
         Point position = player.getPosition();
-        shapeRenderer.setColor(color);
-        shapeRenderer.circle(position.x, position.y, playerRadius, NUMBER_OF_CIRCLE_SEGMENTS);
+        float angle = player.getAngle() * MathUtils.radiansToDegrees;
+        playerSprite.setSize(2 * playerRadius, 2 * playerRadius);
+        playerSprite.setOrigin(playerRadius, playerRadius);
+        playerSprite.setRotation(angle);
+        playerSprite.setPosition(position.x - playerRadius, position.y - playerRadius);
+        playerSprite.setColor(color);
+        playerSprite.draw(spriteBatch);
+    }
 
-        // Direction mark
-        float angle = player.getAngle();
-        float x = position.x + (float) (playerRadius * Math.cos(angle));
-        float y = position.y + (float) (playerRadius * Math.sin(angle));
-        shapeRenderer.circle(x, y, playerRadius / 2, NUMBER_OF_CIRCLE_SEGMENTS);
-
-        // Health
-        float healthFactor = 1 - (float) player.getHealth() / Player.MAX_HEALTH;
+    private void renderPlayerHealth(Player player, float r) {
+        Point p = player.getPosition();
+        float f = (float) player.getHealth() / Player.MAX_HEALTH;
         shapeRenderer.setColor(Color.BLACK);
-        shapeRenderer.circle(position.x, position.y, playerRadius * healthFactor, NUMBER_OF_CIRCLE_SEGMENTS);
+        shapeRenderer.rect(p.x - r, p.y + r, 2 * r, r / 4);
+        shapeRenderer.setColor(Color.OLIVE);
+        shapeRenderer.rect(p.x - r, p.y + r, 2 * r * f, r / 4);
     }
 
     private void renderWalls(List<Wall> walls) {
