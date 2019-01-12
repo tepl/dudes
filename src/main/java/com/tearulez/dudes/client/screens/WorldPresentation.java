@@ -25,8 +25,7 @@ import java.util.Optional;
 
 public class WorldPresentation {
     private static final float VIEWPORT_HEIGHT = 50;
-    private static final float WORLD_SIZE = 200;
-    private static final float NUMBER_OF_GRASS_TILES = 8;
+    private static final float GRASS_TILE_SIZE = 25;
     private static final float ROOF_TILE_SIZE = 20;
     private static final int NUMBER_OF_CIRCLE_SEGMENTS = 8;
     private final GameState state;
@@ -55,7 +54,6 @@ public class WorldPresentation {
         // Graphics
         triangulator = new EarClippingTriangulator();
         grassTex.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        grassTex.setRegion(0, 0, NUMBER_OF_GRASS_TILES, NUMBER_OF_GRASS_TILES);
         wallTex.getTexture().setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     }
 
@@ -106,8 +104,17 @@ public class WorldPresentation {
     private void renderBackground() {
         Gdx.gl.glClearColor(0.1f, 0.3f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        Camera cam = viewport.getCamera();
+        Vector3 p = cam.position;
+        float w = viewport.getWorldWidth();
+        float h = viewport.getWorldHeight();
+        float u = p.x / GRASS_TILE_SIZE;
+        float v = -p.y / GRASS_TILE_SIZE;
+        float u2 = u + w / GRASS_TILE_SIZE;
+        float v2 = v + h / GRASS_TILE_SIZE;
+        grassTex.setRegion(u, v, u2, v2);
         spriteBatch.begin();
-        spriteBatch.draw(grassTex, -WORLD_SIZE / 2, -WORLD_SIZE / 2, WORLD_SIZE, WORLD_SIZE);
+        spriteBatch.draw(grassTex, p.x - w / 2, p.y - h / 2, w, h);
         spriteBatch.end();
     }
 
