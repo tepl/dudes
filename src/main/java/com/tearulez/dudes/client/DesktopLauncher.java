@@ -140,7 +140,8 @@ public class DesktopLauncher extends Application {
     private static void launchApplication(String host, int port, float volume) {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Dudes");
-        config.setWindowSizeLimits(800, -1, 480, -1);
+        config.setWindowedMode(1280, 720);
+        config.setWindowPosition(200, 200);
         config.setWindowIcon(Files.FileType.Internal, "res/icon.png");
         GameClient gameClient = new GameClient(host, port);
         DudesGame game = new DudesGame(gameClient, volume);
