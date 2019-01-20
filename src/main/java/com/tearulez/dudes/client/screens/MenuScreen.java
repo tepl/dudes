@@ -74,10 +74,16 @@ public class MenuScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         for (Actor actor : stage.getActors()) {
-            TextButton.TextButtonStyle style = ((TextButton) actor).getStyle();
+            TextButton button = (TextButton) actor;
+
+            // Update font size
+            TextButton.TextButtonStyle style = button.getStyle();
             style.font.dispose();
             style.font = scalableFontGenerator.generateFont(stage.getViewport().getWorldHeight(), height);
-            ((TextButton) actor).setStyle(style);
+            button.setStyle(style);
+
+            // Update button position
+            button.setX((stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2);
         }
         worldPresentation.resize(width, height);
         stage.getViewport().update(width, height, true);
