@@ -18,7 +18,7 @@ public class ScreenTest {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Dudes");
         config.setWindowSizeLimits(800, -1, 480, -1);
-        ViewportFactory viewportFactory = new ViewportFactory(800.0f / 480);
+        ViewportFactory viewportFactory = new ViewportFactory();
         List<Wall> walls = new SvgMap(new File("maps/map.svg")).getWalls();
         StateSnapshot snapshot = new StateSnapshot.Builder().setWalls(walls).build();
         Game game = new Game() {

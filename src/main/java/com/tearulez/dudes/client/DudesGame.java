@@ -74,9 +74,7 @@ public class DudesGame extends Game {
     @Override
     public void create() {
         Gdx.input.setCursorCatched(true);
-        // We need all our Viewports to have the same aspect ratio.
-        // see Viewport.apply and HdpiUtils.glViewport
-        viewportFactory = new ViewportFactory((float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight());
+        viewportFactory = new ViewportFactory();
         worldPresentation = new WorldPresentation(viewportFactory, () -> stateSnapshot, soundSettings);
         gameClient.init(this);
         setScreen(createSpawnScreen("Choose a spawn point"));
