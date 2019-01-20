@@ -3,6 +3,7 @@ package com.tearulez.dudes.client.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
@@ -20,7 +21,7 @@ import java.util.List;
 public class MenuScreen extends ScreenAdapter {
     private static final float VIEWPORT_HEIGHT = 480;
     private static final float FONT_TO_SCREEN_HEIGHT_RATIO = 1 / 10f;
-    private static final float BUTTON_WIDTH = 300f;
+    private static final float BUTTON_WIDTH = 400f;
     private static final float BUTTON_HEIGHT = 100f;
     private final WorldPresentation worldPresentation;
     private final Stage stage;
@@ -85,13 +86,18 @@ public class MenuScreen extends ScreenAdapter {
             // Update button position
             button.setX((stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2);
         }
-        worldPresentation.resize(width, height);
+        if (worldPresentation != null) worldPresentation.resize(width, height);
         stage.getViewport().update(width, height, true);
     }
 
     @Override
     public void render(float delta) {
-        worldPresentation.render();
+        if (worldPresentation == null) {
+            Gdx.gl.glClearColor(0.1f, 0.3f, 0.1f, 1);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        } else {
+            worldPresentation.render();
+        }
         stage.draw();
     }
 

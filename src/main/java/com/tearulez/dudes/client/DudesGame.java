@@ -33,10 +33,19 @@ public class DudesGame extends Game {
         return new GameScreen(viewportFactory, gameClient, () -> setScreen(createEscapeScreen()), worldPresentation);
     }
 
+    private MenuScreen createMainMenuScreen() {
+        List<MenuItem> menuItems = Arrays.asList(
+                new MenuItem("Start game", () -> setScreen(createSpawnScreen("Choose a spawn point"))),
+                new MenuItem("Exit", this::exit)
+        );
+        return new MenuScreen(viewportFactory, menuItems, null);
+    }
+
     private MenuScreen createEscapeScreen() {
         List<MenuItem> menuItems = Arrays.asList(
                 new MenuItem("Resume", () -> setScreen(createGameScreen())),
-                new MenuItem("Exit", this::exit)
+                new MenuItem("Exit to main menu", () -> setScreen(createMainMenuScreen())),
+                new MenuItem("Exit to desktop", this::exit)
         );
         return new MenuScreen(viewportFactory, menuItems, worldPresentation);
     }
@@ -44,7 +53,8 @@ public class DudesGame extends Game {
     private MenuScreen createDeathScreen() {
         List<MenuItem> menuItems = Arrays.asList(
                 new MenuItem("Respawn", () -> setScreen(createSpawnScreen("Choose a spawn point"))),
-                new MenuItem("Exit", this::exit)
+                new MenuItem("Exit to main menu", () -> setScreen(createMainMenuScreen())),
+                new MenuItem("Exit to desktop", this::exit)
         );
         return new MenuScreen(viewportFactory, menuItems, worldPresentation);
     }
@@ -77,7 +87,7 @@ public class DudesGame extends Game {
         viewportFactory = new ViewportFactory();
         worldPresentation = new WorldPresentation(viewportFactory, () -> stateSnapshot, soundSettings);
         gameClient.init(this);
-        setScreen(createSpawnScreen("Choose a spawn point"));
+        setScreen(createMainMenuScreen());
     }
 
     @Override
