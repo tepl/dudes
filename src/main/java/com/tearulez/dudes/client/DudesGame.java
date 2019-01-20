@@ -35,10 +35,18 @@ public class DudesGame extends Game {
 
     private MenuScreen createMainMenuScreen() {
         List<MenuItem> menuItems = Arrays.asList(
-                new MenuItem("Start game", () -> setScreen(createSpawnScreen("Choose a spawn point"))),
+                new MenuItem("Start game", () -> setScreen(createConnectionScreen())),
                 new MenuItem("Exit", this::exit)
         );
         return new MenuScreen(viewportFactory, menuItems, null);
+    }
+
+    private ConnectionScreen createConnectionScreen() {
+        List<MenuItem> menuItems = Arrays.asList(
+                new MenuItem("Connect", () -> setScreen(createSpawnScreen("Choose a spawn point"))),
+                new MenuItem("Back", () -> setScreen(createMainMenuScreen()))
+        );
+        return new ConnectionScreen(viewportFactory, menuItems);
     }
 
     private MenuScreen createEscapeScreen() {
@@ -107,6 +115,7 @@ public class DudesGame extends Game {
     }
 
     private void exit() {
+        com.tearulez.dudes.client.screens.ScreenUtils.dispose();
         Gdx.app.exit();
     }
 
