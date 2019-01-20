@@ -104,8 +104,7 @@ public class WorldPresentation {
     private void renderBackground() {
         Gdx.gl.glClearColor(0.1f, 0.3f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        Camera cam = viewport.getCamera();
-        Vector3 p = cam.position;
+        Vector2 p = viewport.unproject(new Vector2(viewport.getScreenX(), viewport.getScreenY()));
         float w = viewport.getWorldWidth();
         float h = viewport.getWorldHeight();
         float u = p.x / GRASS_TILE_SIZE;
@@ -114,7 +113,7 @@ public class WorldPresentation {
         float v2 = v + h / GRASS_TILE_SIZE;
         grassTex.setRegion(u, v, u2, v2);
         spriteBatch.begin();
-        spriteBatch.draw(grassTex, p.x - w / 2, p.y - h / 2, w, h);
+        spriteBatch.draw(grassTex, p.x, p.y - h, w, h);
         spriteBatch.end();
     }
 
