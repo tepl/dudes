@@ -2,9 +2,7 @@ package com.tearulez.dudes.client.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -34,17 +32,12 @@ public class ConnectionScreen extends ScreenAdapter {
         float buttonSpace = (h - titleSpace) / (menuItems.size() + 1);
 
         // Add title
-        Label.LabelStyle labelStyle = new Label.LabelStyle();
-        labelStyle.font = new BitmapFont();
-        Label title = new Label("Connection settings", labelStyle);
+        Label title = createLabel("Connection settings");
         title.setBounds(0, h - titleSpace, w, titleSpace);
         stage.addActor(title);
 
         // Add server text field
-        TextField.TextFieldStyle style = new TextField.TextFieldStyle();
-        style.fontColor = Color.CHARTREUSE;
-        style.font = new BitmapFont();
-        TextField serverTextField = new TextField("Server-IP-Placeholder", style);
+        TextField serverTextField = createTextField("Server-IP-Placeholder");
         float x = (w - BUTTON_WIDTH) / 2;
         float y = h - titleSpace - buttonSpace + (buttonSpace - BUTTON_HEIGHT) / 2;
         serverTextField.setBounds(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -74,28 +67,26 @@ public class ConnectionScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
+
+        // Get viewport dimensions
         float viewportWidth = stage.getViewport().getWorldWidth();
         float viewportHeight = stage.getViewport().getWorldHeight();
+
+        // Resize font
+        resizeFont(stage, viewportHeight, height);
+
+        // Reposition actors
         for (Actor actor : stage.getActors()) {
             if (actor instanceof TextButton) {
                 TextButton button = (TextButton) actor;
-                resizeButton(button, viewportHeight, height);
                 button.setX((viewportWidth - BUTTON_WIDTH) / 2);
-            } else if (actor instanceof Label) {
-                Label label = (Label) actor;
-                Label.LabelStyle style = label.getStyle();
-                style.font.dispose();
-                style.font = scalableFontGenerator.generateFont(viewportHeight, height);
-                label.setStyle(style);
             } else if (actor instanceof TextField) {
                 TextField textField = (TextField) actor;
-                TextField.TextFieldStyle style = textField.getStyle();
-                style.font.dispose();
-                style.font = scalableFontGenerator.generateFont(viewportHeight, height);
-                textField.setStyle(style);
                 textField.setX((viewportWidth - BUTTON_WIDTH) / 2);
             }
         }
+
+        // Update viewport size
         stage.getViewport().update(width, height, true);
     }
 
@@ -108,15 +99,6 @@ public class ConnectionScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        for (Actor actor : stage.getActors()) {
-            if (actor instanceof TextButton) {
-                ((TextButton) actor).getStyle().font.dispose();
-            } else if (actor instanceof TextField) {
-                ((TextField) actor).getStyle().font.dispose();
-            } else if (actor instanceof Label) {
-                ((Label) actor).getStyle().font.dispose();
-            }
-        }
         stage.dispose();
     }
 }

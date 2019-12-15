@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import java.util.List;
 
 import static com.tearulez.dudes.client.screens.ScreenUtils.createButton;
-import static com.tearulez.dudes.client.screens.ScreenUtils.resizeButton;
+import static com.tearulez.dudes.client.screens.ScreenUtils.resizeFont;
 
 
 public class MenuScreen extends ScreenAdapter {
@@ -25,10 +25,12 @@ public class MenuScreen extends ScreenAdapter {
         stage = new Stage(viewportFactory.createViewport(VIEWPORT_HEIGHT));
         this.worldPresentation = worldPresentation;
 
+        // Sizes
         float buttonSpace = stage.getViewport().getWorldHeight() / menuItems.size();
         float x = (stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2;
         float y = VIEWPORT_HEIGHT - buttonSpace + (buttonSpace - BUTTON_HEIGHT) / 2;
 
+        // Add buttons
         for (MenuItem menuItem : menuItems) {
             TextButton button = createButton(menuItem.getName(), menuItem.getCallback());
             button.setBounds(x, y, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -51,16 +53,23 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void resize(int width, int height) {
+
+        // Get viewport dimensions
+        float viewportWidth = stage.getViewport().getWorldWidth();
+        float viewportHeight = stage.getViewport().getWorldHeight();
+
+        // Resize font
+        resizeFont(stage, viewportHeight, height);
+
+        // Reposition actors
         for (Actor actor : stage.getActors()) {
-            TextButton button = (TextButton) actor;
-
-            // Update button font size
-            resizeButton(button, stage.getViewport().getWorldHeight(), height);
-
-            // Update button position
-            button.setX((stage.getViewport().getWorldWidth() - BUTTON_WIDTH) / 2);
+            actor.setX((viewportWidth - BUTTON_WIDTH) / 2);
         }
+
+        // Update world presentation size
         if (worldPresentation != null) worldPresentation.resize(width, height);
+
+        // Update viewport size
         stage.getViewport().update(width, height, true);
     }
 
@@ -77,9 +86,6 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        for (Actor actor : stage.getActors()) {
-            ((TextButton) actor).getStyle().font.dispose();
-        }
         stage.dispose();
     }
 }
